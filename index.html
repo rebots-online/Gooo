@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Master - RobinsAI.world</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        html, body {
+            height: 100%; margin: 0; padding: 0;
+            overflow: hidden; /* Prevent scrolling on body */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            display: flex; /* Use flex on body */
+        }
+
+        /* Main container fills the body */
+        .main-container {
+            display: flex;
+            flex-direction: column; /* Stack elements vertically on small screens */
+            md:flex-direction: row; /* Side-by-side on medium screens and up */
+            flex-grow: 1; /* Allow container to grow */
+            width: 100%; /* Take full width */
+            height: 100vh; /* Use viewport height */
+            overflow: hidden; /* Prevent scrollbars on main container */
+            padding: 1rem; /* Add padding around the edges */
+            gap: 1rem; /* Space between sidebar and main area */
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+             width: 100%; md:width: 25%; lg:width: 20%;
+             background-color: #2d3748; /* bg-gray-800 */
+             padding: 1rem; border-radius: 0.5rem;
+             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+             display: flex; flex-direction: column;
+             flex-shrink: 0;
+             overflow-y: auto; /* For any direct in-flow content that might make sidebar too tall */
+             position: relative; /* Crucial for absolute positioning of overlays */
+             order: 1; /* Sidebar first on small screens */
+             md:order: 0; /* Sidebar first on medium+ screens */
+             max-height: calc(100vh - 2rem); /* Max height considering main container padding */
+        }
+
+        /* --- Center Area --- */
+        .center-area {
+            flex: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background-color: #1f2937; /* bg-gray-900 */
+            padding: 1rem; border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            min-height: 300px;
+            overflow: hidden;
+             order: 0; /* Content first on small screens */
+             md:order: 1; /* Content second on medium+ screens */
+        }
+         #game-status {
+            margin-bottom: 1rem;
+            text-align: center;
+            flex-shrink: 0;
+            width: 100%;
+         }
+
+        /* --- Hamburger Menu Button --- */
+        #menu-toggle {
+            position: absolute; top: 1rem; left: 1rem;
+            z-index: 30; background: #4a5568; border: none;
+            padding: 0.5rem; border-radius: 0.375rem; cursor: pointer;
+        }
+         #menu-toggle svg { width: 1.5rem; height: 1.5rem; stroke: #e2e8f0; }
+
+        /* --- Options Menu Overlay --- */
+        #options-menu {
+            position: absolute; top: 4rem; left: 1rem; /* Relative to .sidebar's padding box */
+            background-color: #2d3748; border: 1px solid #4a5568;
+            border-radius: 0.5rem; padding: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            z-index: 25; width: calc(100% - 2rem); max-width: 300px; /* Ensures it doesn't exceed sidebar width */
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: translateY(-10px); opacity: 0; pointer-events: none;
+
+            overflow-y: auto; /* Allows scrolling within the menu if content exceeds max-height */
+            /*
+              Calculation for max-height:
+              Viewport height (100vh)
+              - Main container top padding (1rem)
+              - Sidebar top padding (1rem)
+              - Menu's 'top' offset within sidebar (4rem)
+              - Desired bottom buffer from viewport edge (1rem)
+              Total subtraction = 1 + 1 + 4 + 1 = 7rem
+            */
+            max-height: calc(100vh - 7rem);
+            box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+        }
+        #options-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+
+        /* --- In-Game Controls Container (Tray Overlay) --- */
+        #in-game-controls-container {
+            position: absolute;
+            bottom: 1rem; /* Position at the bottom of the sidebar */
+            left: 1rem;
+            right: 1rem; /* Takes full width of sidebar padding */
+            background-color: #2d3748;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            /* No overflow-y or max-height here; its content is managed by the accordion */
+        }
+
+
+        /* Go Board Styles */
+        .go-board {
+            display: grid;
+            background-color: #d2b48c; border: 2px solid #8b4513;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+            aspect-ratio: 1 / 1; position: relative; padding: 2%;
+            width: 90%;
+            height: auto;
+            margin: 0 auto;
+            flex-shrink: 0;
+        }
+
+        .board-lines { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; pointer-events: none; }
+        .line { position: absolute; background-color: #4a5568; }
+        .h-line { width: 100%; height: 1px; }
+        .v-line { height: 100%; width: 1px; }
+
+        .intersection { position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; z-index: 1; min-width: 16px; min-height: 16px; }
+        .intersection:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        .stone { border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); position: absolute; z-index: 2; pointer-events: none; }
+        .black-stone { background-color: #2d3748; border: 1px solid #1a202c; }
+        .white-stone { background-color: #f7fafc; border: 1px solid #a0aec0; }
+
+        .star-point { position: absolute; background-color: #4a5568; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; }
+
+        .game-button { background-color: #4a5568; color: #e2e8f0; border: 1px solid #718096; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s ease-in-out, transform 0.1s ease; text-align: center; cursor: pointer; display: block; width: 100%; margin-bottom: 0.5rem; }
+        .game-button:hover { background-color: #718096; }
+        .game-button:active { transform: scale(0.98); }
+        .game-button:disabled { background-color: #2d3748; color: #718096; cursor: not-allowed; border-color: #4a5568; }
+
+        /* --- MODAL STYLES --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-content {
+            background-color: #2d3748;
+            padding: 2rem;
+            border: 1px solid #4a5568;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            color: #e2e8f0;
+            position: relative;
+        }
+        .modal-close {
+            color: #a0aec0;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            font-size: 1.75rem;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: #e2e8f0;
+            text-decoration: none;
+        }
+
+        .text-input { background-color: #4a5568; border: 1px solid #718096; color: #e2e8f0; padding: 0.5rem; border-radius: 0.375rem; width: 100%; margin-top: 0.5rem; margin-bottom: 1rem; }
+        .text-input:focus { outline: none; border-color: #a0aec0; box-shadow: 0 0 0 2px rgba(160, 174, 192, 0.5); }
+
+        .tutorial-card { background-color: #4a5568; border: 1px solid #718096; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
+        .coord-label { position: absolute; font-size: 0.65rem; color: rgba(45, 55, 72, 0.7); pointer-events: none; line-height: 1; z-index: 1; }
+
+        /* Accordion toggle for in-game controls (content within the tray) */
+         .ingame-controls-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+        }
+        .ingame-controls-toggle-button {
+            background-color: transparent; border: none; color: #a0aec0;
+            padding: 0.25rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .ingame-controls-toggle-button:hover { color: #e2e8f0; }
+        .ingame-controls-toggle-button svg { width: 1rem; height: 1rem; transition: transform 0.2s ease-in-out; }
+        .ingame-controls-toggle-button.collapsed svg { transform: rotate(-90deg); }
+
+
+        /* Hint visual style */
+        .hint-visual {
+            position: absolute; border-radius: 50%;
+            background-color: rgba(255, 255, 0, 0.35);
+            pointer-events: none;
+            z-index: 3;
+            border: 1px dashed rgba(255, 200, 0, 0.7);
+            box-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <div class="sidebar">
+            <button id="menu-toggle" aria-label="Toggle Menu">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+
+            <div id="options-menu">
+                <h2 class="text-lg font-semibold mb-3 text-white">Game Options</h2>
+                <div id="game-options-menu-content" class="space-y-2 mb-4">
+                     <select id="board-size-select" class="game-button bg-gray-700 text-white p-2 rounded w-full mb-2">
+                         <option value="9">9x9 Board</option>
+                         <option value="13">13x13 Board</option>
+                         <option value="19">19x19 Board</option>
+                     </select>
+                    <button id="new-game-pvp" class="game-button">New Game (PvP)</button>
+                    <button id="new-game-pvc" class="game-button">New Game (vs AI)</button>
+                    <button id="save-game" class="game-button" disabled>Save Game</button>
+                    <button id="load-game" class="game-button">Load Game</button>
+                    <button id="host-game" class="game-button" disabled>Host Game (PvP)</button>
+                    <button id="join-game" class="game-button">Join Game (PvP)</button>
+                </div>
+                 <hr class="border-gray-600 my-4">
+                 <div id="utility-menu-content" class="space-y-2">
+                     <button id="tutorial-button" class="game-button">Tutorial</button>
+                     <button id="about-button" class="game-button">About</button>
+                     <button id="settings-button" class="game-button">Settings</button>
+                 </div>
+            </div>
+
+             <div id="in-game-controls-container" class="hidden">
+                 <div id="ingame-controls-header" class="ingame-controls-header"> <h2 id="ingame-title" class="text-lg font-semibold text-white">In-Game</h2>
+                    <button id="ingame-controls-toggle-btn" class="ingame-controls-toggle-button" aria-label="Toggle In-Game Controls">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                 </div>
+                 <div id="in-game-controls" class="space-y-2"> <button id="pass-turn" class="game-button">Pass Turn</button>
+                     <button id="resign-game" class="game-button bg-red-700 hover:bg-red-600">Resign</button>
+                     <button id="get-hint" class="game-button" disabled>Get Hint (AI Only)</button>
+                     <button id="toggle-coordinates" class="game-button">Toggle Coords</button>
+                 </div>
+             </div>
+        </div>
+
+        <div class="center-area">
+            <div id="game-status">
+                <p id="turn-indicator" class="text-xl font-semibold">Click board to start vs AI</p> <p id="capture-info" class="text-sm text-gray-400">Black Captures: 0 | White Captures: 0</p>
+                <p id="message-area" class="text-yellow-400 mt-2 h-6"></p>
+            </div>
+            <div id="go-board" class="go-board">
+                <div class="board-lines"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="save-load-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('save-load-modal')">&times;</span> <h2 id="save-load-title" class="text-xl font-semibold mb-4">Load Game</h2> <div id="saved-games-list"> <p class="text-gray-400">No saved games found.</p> </div> <input type="text" id="save-name-input" placeholder="Enter save name (optional)" class="text-input mt-4 hidden"> <button id="confirm-save-button" class="game-button mt-4 hidden">Save Current Game</button> </div> </div>
+    <div id="host-game-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('host-game-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Host Game</h2> <p>Share this three-word key with your opponent:</p> <p id="invite-key" class="text-2xl font-bold my-4 text-center bg-gray-700 p-3 rounded">--- --- ---</p> <p class="text-gray-400 text-sm">Waiting for opponent to join via Jami...</p> <p class="text-gray-400 text-sm">(Note: Actual Jami connection needs external setup)</p> <button class="game-button mt-4" onclick="closeModal('host-game-modal')">Close</button> </div> </div>
+    <div id="join-game-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('join-game-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Join Game</h2> <label for="join-key-input">Enter the three-word key from the host:</label> <input type="text" id="join-key-input" class="text-input" placeholder="word-word-word"> <button id="confirm-join-button" class="game-button mt-4">Join via Jami</button> <p class="text-gray-400 text-sm mt-2">(Note: Actual Jami connection needs external setup)</p> </div> </div>
+    <div id="tutorial-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('tutorial-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Go Tutorial</h2> <div id="tutorial-content" class="space-y-4 max-h-96 overflow-y-auto"> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">1. The Board & Stones</h3> <p>Go is played on a grid (commonly 9x9, 13x13, or 19x19). Players take turns placing black and white stones on the intersections of the lines, not inside the squares.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">2. Objective</h3> <p>The goal is to surround more territory (empty intersections) than your opponent. You also score points for captured stones.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">3. Placing Stones</h3> <p>Click on an empty intersection to place your stone. Black plays first.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">4. Liberties & Capture</h3> <p>A stone or group of connected stones needs "liberties" (adjacent empty intersections) to stay on the board. If a player places a stone that removes the last liberty of an opponent's stone or group, those stones are captured and removed from the board.</p> <p class="mt-1 text-sm text-gray-300">Example: If a white stone is surrounded on all four adjacent intersections by black stones, the white stone is captured.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">5. Illegal Moves</h3> <ul> <li><strong>Suicide:</strong> You cannot place a stone that results in its own immediate capture unless that move simultaneously captures opponent stones.</li> <li><strong>Ko Rule:</strong> You cannot immediately recapture a single stone if doing so would return the board to the exact state it was in just before your opponent's previous move. You must play elsewhere first.</li> </ul> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">6. Passing & Ending the Game</h3> <p>If you believe there are no more useful moves, you can "Pass". The game ends when both players pass consecutively. Then, territory and captures are counted to determine the winner.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">7. Scoring (Simplified)</h3> <p>Count the empty intersections you have surrounded. Add the number of stones you captured. The player with the higher score wins. (Official scoring includes Komi - points added to White's score to compensate for Black playing first).</p> </div> </div> <button class="game-button mt-6" onclick="closeModal('tutorial-modal')">Got it!</button> </div> </div>
+    <div id="about-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('about-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">About Go Master</h2> <p>Go Master - Part of the RobinsAI.world Board Game Series.</p> <p class="mt-2">An interactive Go game featuring Player vs. Player (via Jami - external setup required) and Player vs. AI modes.</p> <p class="mt-4 text-sm text-gray-400">Developed with HTML, Tailwind CSS, and JavaScript.</p> <button class="game-button mt-6" onclick="closeModal('about-modal')">Close</button> </div> </div>
+    <div id="settings-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('settings-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Settings</h2> <p>Game settings will go here (e.g., AI difficulty, Komi value, themes).</p> <p class="mt-4 text-sm text-gray-400">(Currently under development)</p> <button class="game-button mt-6" onclick="closeModal('settings-modal')">Close</button> </div> </div>
+
+    <script>
+        // --- Constants and State ---
+        const BOARD_SIZE_SELECT = document.getElementById('board-size-select');
+        const GO_BOARD = document.getElementById('go-board');
+        const TURN_INDICATOR = document.getElementById('turn-indicator');
+        const CAPTURE_INFO = document.getElementById('capture-info');
+        const MESSAGE_AREA = document.getElementById('message-area');
+        const SAVE_GAME_BTN = document.getElementById('save-game');
+        const LOAD_GAME_BTN = document.getElementById('load-game');
+        const HOST_GAME_BTN = document.getElementById('host-game');
+        const JOIN_GAME_BTN = document.getElementById('join-game');
+        const GET_HINT_BTN = document.getElementById('get-hint');
+        const PASS_TURN_BTN = document.getElementById('pass-turn');
+        const RESIGN_BTN = document.getElementById('resign-game');
+        const NEW_GAME_PVP_BTN = document.getElementById('new-game-pvp');
+        const NEW_GAME_PVC_BTN = document.getElementById('new-game-pvc');
+        const IN_GAME_CONTROLS_CONTAINER = document.getElementById('in-game-controls-container');
+        const INGAME_CONTROLS_HEADER = document.getElementById('ingame-controls-header');
+        const INGAME_TITLE = document.getElementById('ingame-title');
+        const INGAME_CONTROLS_TOGGLE_BTN = document.getElementById('ingame-controls-toggle-btn');
+        const IN_GAME_CONTROLS = document.getElementById('in-game-controls'); // The actual buttons
+        const TOGGLE_COORDS_BTN = document.getElementById('toggle-coordinates');
+        const MENU_TOGGLE_BTN = document.getElementById('menu-toggle');
+        const OPTIONS_MENU = document.getElementById('options-menu');
+        const TUTORIAL_BTN = document.getElementById('tutorial-button');
+        const ABOUT_BTN = document.getElementById('about-button');
+        const SETTINGS_BTN = document.getElementById('settings-button');
+
+        const EMPTY = 0; const BLACK = 1; const WHITE = 2;
+        const DEFAULT_GAME_MODE = 'pvc';
+        const DEFAULT_BOARD_SIZE = 9;
+
+        let boardSize = DEFAULT_BOARD_SIZE;
+        let boardState = [];
+        let currentPlayer = BLACK;
+        let captures = { [BLACK]: 0, [WHITE]: 0 };
+        let gameMode = null;
+        let gameOver = true;
+        let passCounter = 0;
+        let moveHistory = [];
+        let showCoordinates = false;
+        let currentHintVisual = null;
+        let inGameControlsAreVisible = true; // For the accordion content within the tray
+
+        // --- Jami Placeholder Functions ---
+        const jamiSend = (key, data) => { console.log(`[JAMI STUB] Sending to key ${key}:`, data); };
+        const jamiReceive = (data) => {
+            console.log("[JAMI STUB] Received data:", data);
+            if (gameMode !== 'pvp') return;
+            if (data.player === currentPlayer) { console.warn("Received move from current player, ignoring."); return; }
+            if (data.type === 'move') { placeStone(data.row, data.col, data.player, true); }
+            else if (data.type === 'pass') { handlePass(true); }
+            else if (data.type === 'resign') { handleResign(true); }
+            else if (data.type === 'gameStateSync') { loadGameState(data.state); }
+        };
+
+        // --- Game Logic ---
+        function startGame(mode, size) {
+            gameMode = mode; boardSize = size;
+            boardState = Array(size).fill(null).map(() => Array(size).fill(EMPTY));
+            currentPlayer = BLACK; captures = { [BLACK]: 0, [WHITE]: 0 };
+            gameOver = false;
+            passCounter = 0; moveHistory = [JSON.stringify(boardState)];
+            clearMessage(); updateTurnIndicator(); updateCaptureInfo();
+            drawBoard();
+            SAVE_GAME_BTN.disabled = false;
+            HOST_GAME_BTN.disabled = (gameMode !== 'pvp');
+            GET_HINT_BTN.disabled = (gameMode !== 'pvc');
+
+            IN_GAME_CONTROLS_CONTAINER.classList.remove('hidden');
+            setInGameControlsVisibility(true); 
+
+            closeOptionsMenu(); 
+            clearHint();
+        }
+
+        function drawEmptyBoard(size) {
+             boardSize = size; boardState = Array(size).fill(null).map(() => Array(size).fill(EMPTY));
+             currentPlayer = BLACK; captures = { [BLACK]: 0, [WHITE]: 0 };
+             gameOver = true; passCounter = 0; moveHistory = [];
+             clearMessage();
+             TURN_INDICATOR.textContent = "Click board to start vs AI";
+             updateCaptureInfo();
+             drawBoard();
+             SAVE_GAME_BTN.disabled = true; HOST_GAME_BTN.disabled = true; GET_HINT_BTN.disabled = true;
+             IN_GAME_CONTROLS_CONTAINER.classList.add('hidden');
+             clearHint();
+        }
+
+        function drawBoard() {
+            requestAnimationFrame(() => {
+                GO_BOARD.innerHTML = '<div class="board-lines"></div>';
+                const linesContainer = GO_BOARD.querySelector('.board-lines');
+                if (!linesContainer) { console.error("drawBoard: linesContainer not found."); return; }
+                linesContainer.innerHTML = '';
+                const boardWidth = GO_BOARD.clientWidth;
+                if (boardWidth === 0) {
+                    console.warn("drawBoard: boardWidth is 0, retrying...");
+                    setTimeout(drawBoard, 50);
+                    return;
+                }
+                GO_BOARD.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+                GO_BOARD.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
+                const gapPercentage = 2; const boardPadding = boardWidth * (gapPercentage / 100);
+                const effectiveBoardWidth = boardWidth - 2 * boardPadding;
+                const cellPixelSize = (boardSize > 1) ? effectiveBoardWidth / (boardSize - 1) : effectiveBoardWidth;
+
+                for (let i = 0; i < boardSize; i++) {
+                    const lineOffset = boardPadding + i * cellPixelSize;
+                    const hLine = document.createElement('div'); hLine.className = 'line h-line'; hLine.style.cssText = `top:${lineOffset}px; left:${boardPadding}px; width:${effectiveBoardWidth}px;`; linesContainer.appendChild(hLine);
+                    const vLine = document.createElement('div'); vLine.className = 'line v-line'; vLine.style.cssText = `left:${lineOffset}px; top:${boardPadding}px; height:${effectiveBoardWidth}px;`; linesContainer.appendChild(vLine);
+                }
+
+                const starPoints = getStarPoints(boardSize);
+                starPoints.forEach(p => {
+                    const star = document.createElement('div'); star.className = 'star-point'; const starOffsetRow = boardPadding + p.row * cellPixelSize; const starOffsetCol = boardPadding + p.col * cellPixelSize; const starPixelSize = Math.max(2, cellPixelSize * 0.1); star.style.cssText = `top: ${starOffsetRow}px; left: ${starOffsetCol}px; width: ${starPixelSize}px; height: ${starPixelSize}px;`; linesContainer.appendChild(star);
+                });
+
+                GO_BOARD.querySelectorAll('.intersection').forEach(inter => inter.remove());
+                GO_BOARD.querySelectorAll('.stone').forEach(s => s.remove());
+
+                for (let r = 0; r < boardSize; r++) {
+                    for (let c = 0; c < boardSize; c++) {
+                        const intersection = document.createElement('div'); intersection.className = 'intersection'; intersection.dataset.row = r; intersection.dataset.col = c;
+                        intersection.style.gridRowStart = r + 1; intersection.style.gridColumnStart = c + 1;
+                        intersection.onclick = () => handleIntersectionClick(r, c);
+                        if (showCoordinates) { addCoordLabels(intersection, r, c); }
+                        GO_BOARD.appendChild(intersection);
+
+                        if (boardState[r][c] !== EMPTY) {
+                            const stone = document.createElement('div'); stone.className = `stone ${boardState[r][c] === BLACK ? 'black-stone' : 'white-stone'}`; const stoneSize = cellPixelSize * 0.85; const stoneTop = boardPadding + r * cellPixelSize - stoneSize / 2; const stoneLeft = boardPadding + c * cellPixelSize - stoneSize / 2;
+                            if (stoneSize > 0 && !isNaN(stoneTop) && !isNaN(stoneLeft)) { stone.style.cssText = `top: ${stoneTop}px; left: ${stoneLeft}px; width: ${stoneSize}px; height: ${stoneSize}px;`; GO_BOARD.appendChild(stone); }
+                        }
+                    }
+                }
+                if (currentHintVisual && currentHintVisual.dataset.hintRow !== undefined) {
+                     const r_hint = parseInt(currentHintVisual.dataset.hintRow);
+                     const c_hint = parseInt(currentHintVisual.dataset.hintCol);
+                     if (!isNaN(r_hint) && !isNaN(c_hint)) {
+                        createAndPositionHintVisual(r_hint, c_hint, false);
+                     }
+                }
+            });
+        }
+
+        function addCoordLabels(intersection, r, c) {
+             const coordText = `${String.fromCharCode(65 + c)}${boardSize - r}`;
+             const topLabel = document.createElement('span'); topLabel.className = 'coord-label'; topLabel.textContent = coordText;
+             topLabel.style.cssText = `bottom: calc(50% + 5px); left: 50%; transform: translateX(-50%);`; intersection.appendChild(topLabel);
+             if (r === boardSize - 1) { const bl = document.createElement('span'); bl.className = 'coord-label'; bl.textContent = String.fromCharCode(65 + c); bl.style.cssText = `top: calc(100% + 3px); left: 50%; transform: translateX(-50%);`; intersection.appendChild(bl); }
+             if (c === 0) { const ll = document.createElement('span'); ll.className = 'coord-label'; ll.textContent = `${boardSize - r}`; ll.style.cssText = `right: calc(100% + 3px); top: 50%; transform: translateY(-50%);`; intersection.appendChild(ll); }
+        }
+
+        function getStarPoints(size) { if (size === 9) return [{row: 2, col: 2}, {row: 2, col: 6}, {row: 4, col: 4}, {row: 6, col: 2}, {row: 6, col: 6}]; if (size === 13) return [{row: 3, col: 3}, {row: 3, col: 9}, {row: 6, col: 6}, {row: 9, col: 3}, {row: 9, col: 9}]; if (size === 19) return [ {row: 3, col: 3}, {row: 3, col: 9}, {row: 3, col: 15}, {row: 9, col: 3}, {row: 9, col: 9}, {row: 9, col: 15}, {row: 15, col: 3}, {row: 15, col: 9}, {row: 15, col: 15} ]; return []; }
+
+        function handleIntersectionClick(row, col) {
+            if (gameOver) {
+                startGame(DEFAULT_GAME_MODE, DEFAULT_BOARD_SIZE);
+                setMessage("Started default game (9x9 vs AI). Black's turn.");
+                return;
+            }
+            clearHint();
+            if (gameMode === 'pvc' && currentPlayer === WHITE) {
+                setMessage("It's the AI's turn.");
+                return;
+            }
+            const success = placeStone(row, col, currentPlayer);
+            if (success && gameMode === 'pvc' && !gameOver) {
+                 setTimeout(aiMove, 500);
+            }
+        }
+
+        function placeStone(row, col, player, receivedMove = false) {
+            clearMessage();
+            clearHint();
+            if (boardState[row][col] !== EMPTY) { setMessage("Intersection occupied."); return false; }
+            const tempBoardState = JSON.parse(JSON.stringify(boardState)); tempBoardState[row][col] = player; let capturedStonesInSim = 0; const opponent = player === BLACK ? WHITE : BLACK; let groupsToRemove = [];
+            const neighbors = getNeighbors(row, col);
+            for (const { r, c } of neighbors) { if (tempBoardState[r][c] === opponent) { const group = findGroupSimulated(r, c, tempBoardState); if (countLibertiesSimulated(group, tempBoardState) === 0) { groupsToRemove.push(group); capturedStonesInSim += group.stones.length; } } }
+            groupsToRemove.forEach(group => group.stones.forEach(({ r, c }) => tempBoardState[r][c] = EMPTY));
+            const ownGroup = findGroupSimulated(row, col, tempBoardState); if (countLibertiesSimulated(ownGroup, tempBoardState) === 0 && capturedStonesInSim === 0) { setMessage("Illegal move: Suicide."); return false; }
+            const potentialStateString = JSON.stringify(tempBoardState); if (moveHistory.length > 1 && potentialStateString === moveHistory[moveHistory.length - 2]) { setMessage("Illegal move: Ko violation."); return false; }
+            boardState[row][col] = player; let actualCapturedStones = 0; groupsToRemove.forEach(group => group.stones.forEach(({ r, c }) => { if (boardState[r][c] !== EMPTY) { boardState[r][c] = EMPTY; actualCapturedStones++; } }));
+            captures[player] += actualCapturedStones; passCounter = 0; moveHistory.push(JSON.stringify(boardState));
+            drawBoard(); updateCaptureInfo(); currentPlayer = opponent; updateTurnIndicator();
+            if (gameMode === 'pvp' && !receivedMove) { jamiSend(document.getElementById('invite-key')?.textContent || 'default-key', { type: 'move', player, row, col, boardState }); } return true;
+        }
+
+        function getNeighbors(r, c) { const neighbors = []; const deltas = [[-1, 0], [1, 0], [0, -1], [0, 1]]; for (const [dr, dc] of deltas) { const nr = r + dr; const nc = c + dc; if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize) { neighbors.push({ r: nr, c: nc }); } } return neighbors; }
+        function findGroup(startR, startC) { return findGroupSimulated(startR, startC, boardState); }
+        function countLiberties(group) { return countLibertiesSimulated(group, boardState); }
+
+        function handlePass(receivedPass = false) { if (gameOver) return; clearMessage(); clearHint(); passCounter++; const opponent = currentPlayer === BLACK ? WHITE : BLACK; setMessage(`${currentPlayer === BLACK ? 'Black' : 'White'} passed.`); if (gameMode === 'pvp' && !receivedPass) { jamiSend(document.getElementById('invite-key')?.textContent || 'default-key', { type: 'pass', player: currentPlayer }); } currentPlayer = opponent; updateTurnIndicator(); if (passCounter >= 2) { endGame(); } else if (gameMode === 'pvc' && currentPlayer === WHITE && !gameOver) { setTimeout(aiMove, 500); } }
+        function handleResign(receivedResign = false) { if (gameOver) return; clearHint(); const winner = currentPlayer === BLACK ? WHITE : BLACK; setMessage(`${currentPlayer === BLACK ? 'Black' : 'White'} resigned. ${winner === BLACK ? 'Black' : 'White'} wins!`); gameOver = true; TURN_INDICATOR.textContent = "Game Over"; SAVE_GAME_BTN.disabled = true; HOST_GAME_BTN.disabled = true; GET_HINT_BTN.disabled = true; if (gameMode === 'pvp' && !receivedResign) { jamiSend(document.getElementById('invite-key')?.textContent || 'default-key', { type: 'resign', player: currentPlayer }); } IN_GAME_CONTROLS_CONTAINER.classList.add('hidden');}
+        function endGame() { gameOver = true; clearHint(); setMessage("Both players passed. Game Over. Scoring..."); const score = calculateScore(); TURN_INDICATOR.textContent = `Game Over! ${score.winner} wins. Score: B ${score.black} - W ${score.white}`; SAVE_GAME_BTN.disabled = true; HOST_GAME_BTN.disabled = true; GET_HINT_BTN.disabled = true; IN_GAME_CONTROLS_CONTAINER.classList.add('hidden'); }
+        function calculateScore() { let blackScore = captures[BLACK]; let whiteScore = captures[WHITE] + 6.5; setMessage("Scoring estimate based on captures + Komi."); return { black: blackScore, white: whiteScore, winner: whiteScore > blackScore ? 'White' : 'Black' }; }
+
+        function aiMove() { if (gameOver || currentPlayer !== WHITE || gameMode !== 'pvc') return; setMessage("AI is thinking..."); TURN_INDICATOR.textContent = "AI's Turn (White)"; let validMoves = []; for (let r = 0; r < boardSize; r++) { for (let c = 0; c < boardSize; c++) { if (isValidMove(r, c, WHITE)) { validMoves.push({ r, c }); } } } if (validMoves.length === 0) { handlePass(); setMessage("AI passes."); return; } let bestMove = null; let maxCaptures = -1; let goodNonCaptureMoves = []; for (const move of validMoves) { const tempBoardState = JSON.parse(JSON.stringify(boardState)); tempBoardState[move.r][move.c] = WHITE; let capturesMade = 0; const opponent = BLACK; const neighbors = getNeighbors(move.r, move.c); let groupsToRemoveSim = []; for (const { r: nr, c: nc } of neighbors) { if (tempBoardState[nr][nc] === opponent) { const group = findGroupSimulated(nr, nc, tempBoardState); if (countLibertiesSimulated(group, tempBoardState) === 0) { capturesMade += group.stones.length; groupsToRemoveSim.push(group); } } } groupsToRemoveSim.forEach(group => group.stones.forEach(({ r, c }) => tempBoardState[r][c] = EMPTY)); const ownGroup = findGroupSimulated(move.r, move.c, tempBoardState); const selfLiberties = countLibertiesSimulated(ownGroup, tempBoardState); if (capturesMade > 0) { if (capturesMade > maxCaptures) { maxCaptures = capturesMade; bestMove = move; } } else if (maxCaptures <= 0 && selfLiberties > 1) { goodNonCaptureMoves.push(move); } } if (bestMove) { /* Prioritize capture */ } else if (goodNonCaptureMoves.length > 0) { bestMove = goodNonCaptureMoves[Math.floor(Math.random() * goodNonCaptureMoves.length)]; } else { bestMove = validMoves[Math.floor(Math.random() * validMoves.length)]; } const success = placeStone(bestMove.r, bestMove.c, WHITE); if (!success) { console.error("AI failed move.", bestMove); handlePass(); setMessage("AI error, passes."); } else { setMessage(`AI placed at ${String.fromCharCode(65 + bestMove.c)}${boardSize - bestMove.r}`); } }
+        function isValidMove(row, col, player) { if (row < 0 || row >= boardSize || col < 0 || col >= boardSize || boardState[row][col] !== EMPTY) { return false; } const tempBoardState = JSON.parse(JSON.stringify(boardState)); tempBoardState[row][col] = player; let capturedStonesCount = 0; const opponent = player === BLACK ? WHITE : BLACK; const neighbors = getNeighbors(row, col); for (const { r, c } of neighbors) { if (tempBoardState[r][c] === opponent) { const group = findGroupSimulated(r, c, tempBoardState); if (countLibertiesSimulated(group, tempBoardState) === 0) { capturedStonesCount += group.stones.length; group.stones.forEach(s => tempBoardState[s.r][s.c] = EMPTY); } } } const ownGroup = findGroupSimulated(row, col, tempBoardState); if (countLibertiesSimulated(ownGroup, tempBoardState) === 0 && capturedStonesCount === 0) { return false; } const potentialStateString = JSON.stringify(tempBoardState); if (moveHistory.length > 1 && potentialStateString === moveHistory[moveHistory.length - 2]) { return false; } return true; }
+        function findGroupSimulated(startR, startC, simBoardState) { const color = simBoardState[startR][startC]; if (color === EMPTY) return { stones: [] }; const group = new Set(); const queue = [{ r: startR, c: startC }]; const visited = new Set([`${startR},${startC}`]); const size = simBoardState.length; while (queue.length > 0) { const { r, c } = queue.shift(); group.add(`${r},${c}`); const simNeighbors = getNeighbors(r, c); for (const { r: nr, c: nc } of simNeighbors) { const posString = `${nr},${nc}`; if (nr >= 0 && nr < size && nc >= 0 && nc < size) { const neighborState = simBoardState[nr][nc]; if (neighborState === color && !visited.has(posString)) { visited.add(posString); queue.push({ r: nr, c: nc }); } } } } const stoneCoords = Array.from(group).map(s => { const [r, c] = s.split(',').map(Number); return { r, c }; }); return { stones: stoneCoords }; }
+        function countLibertiesSimulated(group, simBoardState) { const liberties = new Set(); const size = simBoardState.length; if (!group || !group.stones) return 0; for (const stone of group.stones) { const simNeighbors = getNeighbors(stone.r, stone.c); for (const { r: nr, c: nc } of simNeighbors) { if (nr >= 0 && nr < size && nc >= 0 && nc < size) { if (simBoardState[nr][nc] === EMPTY) { liberties.add(`${nr},${nc}`); } } } } return liberties.size; }
+
+        // --- UI Updates ---
+        function updateTurnIndicator() { TURN_INDICATOR.textContent = gameOver ? "Click board to start vs AI" : `${currentPlayer === BLACK ? 'Black' : 'White'}'s Turn`; }
+        function updateCaptureInfo() { CAPTURE_INFO.textContent = `Black Captures: ${captures[BLACK]} | White Captures: ${captures[WHITE]}`; }
+        function setMessage(msg) { MESSAGE_AREA.textContent = msg; }
+        function clearMessage() { MESSAGE_AREA.textContent = ''; }
+        function toggleCoordinates() { showCoordinates = !showCoordinates; drawBoard(); }
+
+        // --- Menu Toggle (Main Options Menu) ---
+        function toggleOptionsMenu() { OPTIONS_MENU.classList.toggle('open'); }
+        function closeOptionsMenu() { OPTIONS_MENU.classList.remove('open'); }
+
+        // --- In-Game Controls Accordion Toggle (Content within the Tray) ---
+        function toggleInGameControlsAccordion() { // Renamed for clarity
+            setInGameControlsVisibility(!inGameControlsAreVisible);
+        }
+
+        function setInGameControlsVisibility(visible) { // For accordion content
+            inGameControlsAreVisible = visible;
+            if (visible) {
+                IN_GAME_CONTROLS.classList.remove('hidden');
+                INGAME_CONTROLS_TOGGLE_BTN.classList.remove('collapsed');
+            } else {
+                IN_GAME_CONTROLS.classList.add('hidden');
+                INGAME_CONTROLS_TOGGLE_BTN.classList.add('collapsed');
+            }
+        }
+
+        // --- Modals ---
+        function openModal(modalId) { const modal = document.getElementById(modalId); if(modal) modal.style.display = 'flex'; }
+        function closeModal(modalId) { const modal = document.getElementById(modalId); if(modal) modal.style.display = 'none'; }
+        function setupModalInteractions() { window.addEventListener('click', (event) => { document.querySelectorAll('.modal').forEach(modal => { if (event.target == modal) closeModal(modal.id); }); }); TUTORIAL_BTN.onclick = () => { openModal('tutorial-modal'); closeOptionsMenu(); }; ABOUT_BTN.onclick = () => { openModal('about-modal'); closeOptionsMenu(); }; SETTINGS_BTN.onclick = () => { openModal('settings-modal'); closeOptionsMenu(); }; LOAD_GAME_BTN.onclick = () => { showSaveLoadModal(false); closeOptionsMenu(); }; JOIN_GAME_BTN.onclick = () => { openModal('join-game-modal'); closeOptionsMenu(); }; SAVE_GAME_BTN.onclick = () => { showSaveLoadModal(true); closeOptionsMenu(); }; HOST_GAME_BTN.onclick = () => { showHostGameModal(); closeOptionsMenu(); }; document.getElementById('confirm-join-button').onclick = attemptJoinGame; }
+
+        // --- Save / Load ---
+        const SAVE_SLOT_PREFIX = 'goGameSave_';
+        function getGameState() { return { boardSize, boardState, currentPlayer, captures, gameMode, gameOver, passCounter, moveHistory, showCoordinates, inGameControlsAreVisible }; }
+        function loadGameState(state) { if (!state) return; ({ boardSize, boardState, currentPlayer, captures, gameMode, gameOver, passCounter, moveHistory = [JSON.stringify(state.boardState)], showCoordinates = false, inGameControlsAreVisible = true } = state); clearMessage(); updateTurnIndicator(); updateCaptureInfo(); drawBoard(); SAVE_GAME_BTN.disabled = gameOver; HOST_GAME_BTN.disabled = gameOver || (gameMode !== 'pvp'); GET_HINT_BTN.disabled = gameOver || (gameMode !== 'pvc'); if (gameOver) { IN_GAME_CONTROLS_CONTAINER.classList.add('hidden');} else { IN_GAME_CONTROLS_CONTAINER.classList.remove('hidden'); setInGameControlsVisibility(inGameControlsAreVisible); } setMessage(`Game loaded. ${gameOver ? 'Game is over.' : ''}`); }
+        function showSaveLoadModal(isSaving) { const modal = document.getElementById('save-load-modal'); const title = document.getElementById('save-load-title'); const listDiv = document.getElementById('saved-games-list'); const nameInput = document.getElementById('save-name-input'); const saveButton = document.getElementById('confirm-save-button'); listDiv.innerHTML = ''; title.textContent = isSaving ? "Save Game" : "Load Game"; nameInput.style.display = isSaving ? 'block' : 'none'; saveButton.style.display = isSaving ? 'block' : 'none'; nameInput.value = ''; let hasSaves = false; try { for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key?.startsWith(SAVE_SLOT_PREFIX)) { hasSaves = true; const saveName = key.substring(SAVE_SLOT_PREFIX.length); const gameEntry = document.createElement('div'); gameEntry.className = 'flex justify-between items-center p-2 bg-gray-700 rounded mb-2'; const nameSpan = document.createElement('span'); nameSpan.textContent = saveName; nameSpan.className = 'mr-2 truncate'; gameEntry.appendChild(nameSpan); const actionsDiv = document.createElement('div'); actionsDiv.className = 'flex-shrink-0'; if (!isSaving) { const loadBtn = document.createElement('button'); loadBtn.textContent = 'Load'; loadBtn.className = 'game-button text-sm px-2 py-1 mr-1'; loadBtn.onclick = (e) => { e.stopPropagation(); try { const savedState = JSON.parse(localStorage.getItem(key)); loadGameState(savedState); closeModal('save-load-modal'); } catch (err) { console.error("Load error:", err); setMessage("Error loading game."); } }; actionsDiv.appendChild(loadBtn); } const deleteBtn = document.createElement('button'); deleteBtn.textContent = 'Delete'; deleteBtn.className = 'game-button text-sm px-2 py-1 bg-red-700 hover:bg-red-600'; deleteBtn.onclick = (e) => { e.stopPropagation(); if (window.confirm(`Delete "${saveName}"? This action cannot be undone.`)) { localStorage.removeItem(key); showSaveLoadModal(isSaving); } }; actionsDiv.appendChild(deleteBtn); gameEntry.appendChild(actionsDiv); listDiv.appendChild(gameEntry); } } } catch (e) { console.error("localStorage access error:", e); listDiv.innerHTML = '<p class="text-red-400">Could not access saves. Check browser settings.</p>'; } if (!hasSaves && !listDiv.querySelector('p')) { listDiv.innerHTML = '<p class="text-gray-400">No saved games found.</p>'; } saveButton.onclick = (e) => { e.stopPropagation(); let saveName = nameInput.value.trim(); if (!saveName) { const d=new Date(); saveName = `Game_${d.toISOString().slice(0,10)}_${d.toTimeString().slice(0,5).replace(':','')}`; } const key = SAVE_SLOT_PREFIX + saveName; try { if (localStorage.getItem(key) && !window.confirm(`A save named "${saveName}" already exists. Overwrite?`)) { return; } localStorage.setItem(key, JSON.stringify(getGameState())); setMessage(`Game saved as "${saveName}".`); closeModal('save-load-modal'); } catch (err) { console.error("Save error:", err); setMessage("Error saving game. Storage might be full."); } }; openModal('save-load-modal'); }
+
+        // --- PvP Invite/Join ---
+        const wordList = ["fox", "jump", "quick", "brown", "lazy", "dog", "over", "log", "river", "flow", "stone", "path", "wind", "sun", "moon", "star", "cloud", "rain", "snow", "tree", "leaf", "root", "bird", "song", "fly", "high", "deep", "blue", "red", "gold", "wise", "calm", "fast", "slow", "dark", "light", "new", "old", "true", "kind"];
+        function generateInviteKey() { const words = []; const len = wordList.length; if (window.crypto?.getRandomValues) { const idx = new Uint32Array(3); window.crypto.getRandomValues(idx); for (let i = 0; i < 3; i++) words.push(wordList[idx[i] % len]); } else { console.warn("Using fallback Math.random for key generation."); for (let i = 0; i < 3; i++) words.push(wordList[Math.floor(Math.random() * len)]); } return words.join('-'); }
+        function showHostGameModal() { if (gameMode !== 'pvp' || gameOver) { setMessage("Can only host active PvP games."); return; } const key = generateInviteKey(); document.getElementById('invite-key').textContent = key; openModal('host-game-modal'); console.log(`[JAMI STUB] Listening on key: ${key}`); }
+        function attemptJoinGame() { const key = document.getElementById('join-key-input').value.trim().toLowerCase(); if (!key || !/^[a-z]+(-[a-z]+){2}$/.test(key)) { setMessage("Invalid key format. Use three words separated by hyphens."); return; } closeModal('join-game-modal'); setMessage(`Attempting to join game with key: ${key}...`); console.log(`[JAMI STUB] Joining key: ${key}`); startGame('pvp', parseInt(BOARD_SIZE_SELECT.value)); }
+
+        // --- Hints ---
+        function clearHint() {
+            if (currentHintVisual && currentHintVisual.parentNode) {
+                currentHintVisual.parentNode.removeChild(currentHintVisual);
+            }
+            currentHintVisual = null;
+        }
+
+        function createAndPositionHintVisual(r, c, updateMessage = true) {
+            clearHint(); 
+
+            const boardWidth = GO_BOARD.clientWidth;
+            if (boardWidth === 0) { console.warn("Cannot create hint, board width is 0."); return; }
+
+            const gapPercentage = 2;
+            const boardPadding = boardWidth * (gapPercentage / 100);
+            const effectiveBoardWidth = boardWidth - 2 * boardPadding;
+            const cellPixelSize = (boardSize > 1) ? effectiveBoardWidth / (boardSize - 1) : effectiveBoardWidth;
+
+            const hintVisual = document.createElement('div');
+            hintVisual.className = 'hint-visual'; 
+            hintVisual.dataset.hintRow = r; 
+            hintVisual.dataset.hintCol = c;
+
+            const hintSize = cellPixelSize * 0.9;
+            const hintTop = boardPadding + r * cellPixelSize - hintSize / 2;
+            const hintLeft = boardPadding + c * cellPixelSize - hintSize / 2;
+
+            if (hintSize > 0 && !isNaN(hintTop) && !isNaN(hintLeft)) {
+                hintVisual.style.width = `${hintSize}px`;
+                hintVisual.style.height = `${hintSize}px`;
+                hintVisual.style.top = `${hintTop}px`;
+                hintVisual.style.left = `${hintLeft}px`;
+                GO_BOARD.appendChild(hintVisual); 
+                currentHintVisual = hintVisual;
+                if (updateMessage) {
+                    const hintCoord = `${String.fromCharCode(65 + c)}${boardSize - r}`;
+                    setMessage(`Hint: Consider placing a stone at ${hintCoord}`);
+                }
+            } else {
+                console.warn("Could not calculate valid hint position/size.");
+            }
+        }
+
+        function showHint() {
+            if (gameOver || gameMode !== 'pvc' || currentPlayer !== BLACK) {
+                setMessage("Hints are only available for your turn when playing against the AI.");
+                return;
+            }
+            setMessage("Calculating hint...");
+            let validMoves = [];
+            for (let r_idx = 0; r_idx < boardSize; r_idx++) {
+                for (let c_idx = 0; c_idx < boardSize; c_idx++) {
+                    if (isValidMove(r_idx, c_idx, currentPlayer)) {
+                        validMoves.push({ r: r_idx, c: c_idx });
+                    }
+                }
+            }
+            if (validMoves.length === 0) {
+                setMessage("No valid moves found. You might need to pass.");
+                return;
+            }
+            const hintMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+            createAndPositionHintVisual(hintMove.r, hintMove.c);
+        }
+
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            if (MENU_TOGGLE_BTN) {
+                 MENU_TOGGLE_BTN.onclick = toggleOptionsMenu;
+            } else {
+                console.error("Menu toggle button not found!");
+            }
+            if (INGAME_CONTROLS_HEADER) {
+                INGAME_CONTROLS_HEADER.onclick = toggleInGameControlsAccordion;
+            } else {
+                console.error("In-game controls header not found!");
+            }
+
+            document.addEventListener('click', function(event) { if (OPTIONS_MENU && !OPTIONS_MENU.classList.contains('open')) { /* Do nothing if already closed */ } else if (OPTIONS_MENU && OPTIONS_MENU.classList.contains('open') && !OPTIONS_MENU.contains(event.target) && MENU_TOGGLE_BTN && !MENU_TOGGLE_BTN.contains(event.target)) { closeOptionsMenu(); } });
+            NEW_GAME_PVP_BTN.onclick = () => { startGame('pvp', parseInt(BOARD_SIZE_SELECT.value)); closeOptionsMenu(); };
+            NEW_GAME_PVC_BTN.onclick = () => { startGame('pvc', parseInt(BOARD_SIZE_SELECT.value)); closeOptionsMenu(); };
+            PASS_TURN_BTN.onclick = () => handlePass();
+            RESIGN_BTN.onclick = () => { if (!gameOver && window.confirm("Are you sure you want to resign?")) handleResign(); };
+            GET_HINT_BTN.onclick = showHint;
+            TOGGLE_COORDS_BTN.onclick = toggleCoordinates;
+            BOARD_SIZE_SELECT.onchange = () => { const newSize = parseInt(BOARD_SIZE_SELECT.value); if (!gameOver && gameMode) { setMessage("Board size change will apply to the next new game."); } else { drawEmptyBoard(newSize); } };
+            let resizeTimeout; window.onresize = () => { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(drawBoard, 250); };
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupModalInteractions();
+            setupEventListeners();
+            drawEmptyBoard(parseInt(BOARD_SIZE_SELECT.value));
+        });
+
+    </script>
+
+</body>
+</html>
