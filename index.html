@@ -18,25 +18,23 @@
             font-family: 'Inter', sans-serif;
             background-color: #1a202c; /* Dark background */
             color: #e2e8f0; /* Light text */
-            display: flex; /* Use flex on body */
         }
 
         /* Main container fills the body */
         .main-container {
             display: flex;
             flex-direction: column; /* Stack elements vertically on small screens */
-            md:flex-direction: row; /* Side-by-side on medium screens and up */
-            flex-grow: 1; /* Allow container to grow */
-            width: 100%; /* Take full width */
+            width: 100vw; /* Take full viewport width */
             height: 100vh; /* Use viewport height */
             overflow: hidden; /* Prevent scrollbars on main container */
             padding: 1rem; /* Add padding around the edges */
             gap: 1rem; /* Space between sidebar and main area */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
         }
 
         /* --- Sidebar --- */
         .sidebar {
-             width: 100%; md:width: 25%; lg:width: 20%;
+             width: 250px;
              background-color: #2d3748; /* bg-gray-800 */
              padding: 1rem; border-radius: 0.5rem;
              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -45,25 +43,65 @@
              overflow-y: auto; /* For any direct in-flow content that might make sidebar too tall */
              position: relative; /* Crucial for absolute positioning of overlays */
              order: 1; /* Sidebar first on small screens */
-             md:order: 0; /* Sidebar first on medium+ screens */
-             max-height: calc(100vh - 2rem); /* Max height considering main container padding */
-        }
+             min-height: 200px; /* Ensure minimum height for sidebar */
+         }
 
         /* --- Center Area --- */
         .center-area {
             flex: 1;
             display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            align-items: center; justify-content: flex-start;
             background-color: #1f2937; /* bg-gray-900 */
             padding: 1rem; border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             min-height: 300px;
             overflow: hidden;
-             order: 0; /* Content first on small screens */
-             md:order: 1; /* Content second on medium+ screens */
+            order: 0; /* Content first on small screens */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                order: 0;
+                min-height: auto;
+                max-height: 250px;
+            }
+            .center-area {
+                order: 1;
+            }
+            .go-board {
+                width: 85vw;
+                height: 85vw;
+            }
+        }
+        
+        @media (min-width: 768px) { /* Tailwind's default 'md' breakpoint */
+            .main-container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .sidebar {
+                width: 300px;
+                order: 0;
+                align-self: flex-start; /* Ensure sidebar aligns to top in row layout */
+            }
+            .center-area {
+                order: 1;
+            }
+        }
+
+        @media (min-width: 1024px) { /* Tailwind's default 'lg' breakpoint */
+            .sidebar {
+                width: 350px;
+            }
         }
          #game-status {
             margin-bottom: 1rem;
+            margin-top: 1rem;
             text-align: center;
             flex-shrink: 0;
             width: 100%;
@@ -71,7 +109,7 @@
 
         /* --- Hamburger Menu Button --- */
         #menu-toggle {
-            position: absolute; top: 1rem; left: 1rem;
+            position: fixed; top: 1rem; left: 1rem;
             z-index: 30; background: #4a5568; border: none;
             padding: 0.5rem; border-radius: 0.375rem; cursor: pointer;
         }
@@ -79,25 +117,15 @@
 
         /* --- Options Menu Overlay --- */
         #options-menu {
-            position: absolute; top: 4rem; left: 1rem; /* Relative to .sidebar's padding box */
+            position: absolute; top: 0; left: 0; right: 0; /* Position within sidebar */
             background-color: #2d3748; border: 1px solid #4a5568;
             border-radius: 0.5rem; padding: 1rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-            z-index: 25; width: calc(100% - 2rem); max-width: 300px; /* Ensures it doesn't exceed sidebar width */
+            z-index: 25;
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
             transform: translateY(-10px); opacity: 0; pointer-events: none;
-
             overflow-y: auto; /* Allows scrolling within the menu if content exceeds max-height */
-            /*
-              Calculation for max-height:
-              Viewport height (100vh)
-              - Main container top padding (1rem)
-              - Sidebar top padding (1rem)
-              - Menu's 'top' offset within sidebar (4rem)
-              - Desired bottom buffer from viewport edge (1rem)
-              Total subtraction = 1 + 1 + 4 + 1 = 7rem
-            */
-            max-height: calc(100vh - 7rem);
+            max-height: 100%; /* Use full sidebar height */
             box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
         }
         #options-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
@@ -119,27 +147,133 @@
 
 
         /* Go Board Styles */
+        /* Board container */
         .go-board {
-            display: grid;
-            background-color: #d2b48c; border: 2px solid #8b4513;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-            aspect-ratio: 1 / 1; position: relative; padding: 2%;
-            /* Scale board to fit within the smaller viewport dimension */
-            width: 90vmin;
-            height: 90vmin;
+            background-color: #d2b48c;
+            border: 2px solid #8b4513;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            aspect-ratio: 1 / 1;
+            position: relative;
+            width: 80vmin;
+            height: 80vmin;
+            max-width: 600px;
+            max-height: 600px;
             margin: 0 auto;
             flex-shrink: 0;
+            padding: 20px;
+            cursor: pointer;
+            user-select: none;
         }
 
-        .board-lines { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; pointer-events: none; }
-        .line { position: absolute; background-color: #4a5568; }
+        /* Layers */
+        .board-lines {
+            position: absolute;
+            inset: 20px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .intersections-layer {
+            position: absolute;
+            inset: 20px;
+            z-index: 10;
+            pointer-events: auto !important;
+            /* Debug visibility */
+            background-color: rgba(255, 0, 0, 0.1);
+        }
+
+        /* Individual intersections */
+        .intersection {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            /* Debug visibility */
+            background-color: rgba(255, 0, 0, 0.3);
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            border-radius: 50%;
+        }
+
+        .intersection:hover {
+            background-color: rgba(255, 255, 0, 0.5);
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 30;
+        }
+
+        /* Debug elements */
+        .debug-overlay {
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .debug-info {
+            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: yellow;
+            padding: 5px;
+            font-family: monospace;
+            pointer-events: none;
+        }
+        .line { position: absolute; background-color: #4a5568; pointer-events: none; }
         .h-line { width: 100%; height: 1px; }
         .v-line { height: 100%; width: 1px; }
 
-        .intersection { position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; z-index: 1; min-width: 16px; min-height: 16px; }
-        .intersection:hover { background-color: rgba(255, 255, 255, 0.1); }
+        /* Intersection points */
+        .intersection {
+            position: absolute;
+            cursor: pointer !important;
+            width: 40px;  /* Larger click target */
+            height: 40px;
+            margin-left: -20px;  /* Center the intersection */
+            margin-top: -20px;
+            z-index: 15;  /* Ensure it's above everything */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            border-radius: 50%;
+            background-color: rgba(255, 0, 0, 0.3);  /* Very visible for debugging */
+            border: 3px solid rgba(255, 0, 0, 0.5);
+            transition: all 0.2s ease;
+            /* Force pointer events */
+            pointer-events: auto !important;
+            user-select: none;
+        }
 
-        .stone { border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); position: absolute; z-index: 2; pointer-events: none; }
+        /* Very obvious hover state */
+        .intersection:hover {
+            background-color: rgba(255, 215, 0, 0.8) !important;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+            transform: scale(1.2);  /* Make it grow on hover */
+        }
+
+        /* Debug coordinate display */
+        .intersection::before {
+            content: attr(data-row) ',' attr(data-col);
+            position: absolute;
+            color: black;
+            font-size: 10px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .stone {
+            position: absolute;
+            width: 90%;  /* Relative to intersection size */
+            height: 90%;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+            pointer-events: none;
+            left: 5%;  /* Center in intersection */
+            top: 5%;
+        }
         .black-stone { background-color: #2d3748; border: 1px solid #1a202c; }
         .white-stone { background-color: #f7fafc; border: 1px solid #a0aec0; }
 
@@ -227,19 +361,53 @@
             border: 1px dashed rgba(255, 200, 0, 0.7);
             box-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
         }
+        /* Glowing halo on hover for intersections */
+        .intersection:hover::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* Use fixed size instead of percentage for consistent halo */
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.8);
+            pointer-events: none;
+            animation: pulse 0.2s ease-in-out;
+        }
+        /* Pulse animation for halo */
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        /* Ripple animation for stone placement */
+        @keyframes ripple {
+            from { transform: scale(0); opacity: 0.8; }
+            to { transform: scale(2); opacity: 0; }
+        }
+        .stone-ripple {
+            position: absolute;
+            border: 2px solid rgba(255, 215, 0, 0.9);
+            border-radius: 50%;
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    <audio id="hoverSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-treasure-coin-2038.mp3" preload="auto"></audio>
+
+    <button id="menu-toggle" aria-label="Toggle Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+    </button>
 
     <div class="main-container">
 
         <div class="sidebar">
-            <button id="menu-toggle" aria-label="Toggle Menu">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-            </button>
-
             <div id="options-menu">
                 <h2 class="text-lg font-semibold mb-3 text-white">Game Options</h2>
                 <div id="game-options-menu-content" class="space-y-2 mb-4">
@@ -284,9 +452,15 @@
                 <p id="turn-indicator" class="text-xl font-semibold">Click board to start vs AI</p> <p id="capture-info" class="text-sm text-gray-400">Black Captures: 0 | White Captures: 0</p>
                 <p id="message-area" class="text-yellow-400 mt-2 h-6"></p>
             </div>
-            <div id="go-board" class="go-board">
-                <div class="board-lines"></div>
-            </div>
+            <div id="go-board" class="go-board" data-debug="board"
+                 onclick="console.log('DEBUG Board click:', event); event.stopPropagation(); return true;"
+                 onmousemove="this.querySelector('.debug-info').textContent = `Mouse: ${event.clientX}, ${event.clientY}`">
+               <div class="board-lines" data-debug="lines"></div>
+               <div class="debug-overlay" style="position: absolute; inset: 0; border: 2px solid yellow; pointer-events: none; z-index: 100;" data-debug="overlay"></div>
+               <div class="debug-center" style="position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: yellow; transform: translate(-50%, -50%); pointer-events: none; z-index: 100;" data-debug="center"></div>
+               <div class="debug-info" style="position: absolute; bottom: 0; left: 0; background: rgba(0,0,0,0.8); color: yellow; padding: 5px; font-size: 12px; pointer-events: none; z-index: 100;" data-debug="info">Click to test</div>
+               <div class="intersections-layer" style="position: absolute; inset: 0; z-index: 10;" data-debug="intersections-layer" onclick="console.log('DEBUG Layer click:', event);"></div>
+           </div>
         </div>
 
     </div>
@@ -348,6 +522,67 @@
     </div>
 
     <script>
+        // Simple debug click handler
+        document.addEventListener('click', function(e) {
+            try {
+                console.log('\n=== Click Debug ===');
+                console.log('Target:', e.target.tagName, e.target.className);
+                console.log(`Coords: (${e.clientX}, ${e.clientY})`);
+                
+                const intersection = e.target.closest('.intersection');
+                if (intersection) {
+                    const row = intersection.dataset.row;
+                    const col = intersection.dataset.col;
+                    console.log(`Intersection hit: (${row}, ${col})`);
+                    const rect = intersection.getBoundingClientRect();
+                    console.log(`Intersection bounds: (${rect.left}, ${rect.top}, ${rect.width}, ${rect.height})`);
+                } else {
+                    console.log('No intersection hit');
+                }
+                
+                console.log('Event chain:', e.composedPath()
+                    .filter(el => el instanceof Element)
+                    .map(el => el.tagName + '.' + el.className)
+                    .join(' -> ')
+                );
+            } catch (err) {
+                console.error('Click debug error:', err.message);
+            }
+        }, true);
+
+        // Initialize debug click handlers before anything else
+        document.addEventListener('DOMContentLoaded', function initDebug() {
+            console.log('Setting up debug handlers...');
+            const board = document.getElementById('go-board');
+            if (!board) {
+                console.error('Could not find go-board element during debug init');
+                return;
+            }
+
+            // Direct board click handler
+            board.addEventListener('click', (e) => {
+                console.log('\n=== Debug Board Click ===');
+                console.log('Event:', {
+                    type: e.type,
+                    target: e.target.className,
+                    x: e.clientX,
+                    y: e.clientY,
+                    boardRect: board.getBoundingClientRect()
+                });
+            }, true);  // Use capture phase
+
+            // Mouse tracking
+            const debugInfo = board.querySelector('.debug-info');
+            board.addEventListener('mousemove', (e) => {
+                if (debugInfo) {
+                    const rect = board.getBoundingClientRect();
+                    debugInfo.textContent = `Mouse: ${Math.round(e.clientX - rect.left)}, ${Math.round(e.clientY - rect.top)}`;
+                }
+            });
+
+            console.log('Debug handlers initialized');
+        });
+
         // --- Constants and State ---
         const BOARD_SIZE_SELECT = document.getElementById('board-size-select');
         const GO_BOARD = document.getElementById('go-board');
@@ -389,6 +624,7 @@
         let captures = { [BLACK]: 0, [WHITE]: 0 };
         let gameMode = null;
         let gameOver = true;
+        let gameStarted = false;
         let passCounter = 0;
         let moveHistory = [];
         let showCoordinates = false;
@@ -431,10 +667,12 @@
 
         // --- Game Logic ---
         function startGame(mode, size) {
+            console.log('Starting new game:', { mode, size });
             gameMode = mode; boardSize = size;
             boardState = Array(size).fill(null).map(() => Array(size).fill(EMPTY));
             currentPlayer = BLACK; captures = { [BLACK]: 0, [WHITE]: 0 };
             gameOver = false;
+            gameStarted = true;
             passCounter = 0; moveHistory = [JSON.stringify(boardState)];
             clearMessage(); updateTurnIndicator(); updateCaptureInfo();
             drawBoard();
@@ -450,9 +688,15 @@
         }
 
         function drawEmptyBoard(size) {
-             boardSize = size; boardState = Array(size).fill(null).map(() => Array(size).fill(EMPTY));
-             currentPlayer = BLACK; captures = { [BLACK]: 0, [WHITE]: 0 };
-             gameOver = true; passCounter = 0; moveHistory = [];
+             console.log('Drawing empty board:', { size });
+             boardSize = size;
+             boardState = Array(size).fill(null).map(() => Array(size).fill(EMPTY));
+             currentPlayer = BLACK;
+             captures = { [BLACK]: 0, [WHITE]: 0 };
+             gameOver = true;
+             gameStarted = false;
+             passCounter = 0;
+             moveHistory = [];
              clearMessage();
              TURN_INDICATOR.textContent = "Click board to start vs AI";
              updateCaptureInfo();
@@ -463,42 +707,266 @@
         }
 
         function drawBoard() {
+            console.log('=== Drawing Board ===');
+            console.log('Board size:', boardSize);
+
+            // Debug DOM state before changes
+            console.log('Initial board state:', {
+                board: GO_BOARD,
+                innerHTML: GO_BOARD.innerHTML,
+                rect: GO_BOARD.getBoundingClientRect()
+            });
+
+            // Create both layers
+            GO_BOARD.innerHTML = `
+                <div class="board-lines"></div>
+                <div class="intersections-layer"></div>
+            `;
+            
+            // Debug elements after creation
+            const linesContainer = GO_BOARD.querySelector('.board-lines');
+            const intersectionsLayer = GO_BOARD.querySelector('.intersections-layer');
+            
+            console.log('Layer elements:', {
+                lines: linesContainer,
+                intersections: intersectionsLayer
+            });
+            
+            if (!linesContainer || !intersectionsLayer) {
+                console.error("drawBoard: Required containers not found.");
+                return;
+            }
+
+            // Set up click handlers immediately
+            function setupClickHandlers() {
+                console.log('Setting up click handlers...');
+                
+                // Board-level event delegation
+                GO_BOARD.onclick = (e) => {
+                    console.log('\n=== Board Click ===');
+                    console.log('Click target:', e.target);
+                    console.log('Event details:', {
+                        clientX: e.clientX,
+                        clientY: e.clientY,
+                        target: e.target.className,
+                        targetRect: e.target.getBoundingClientRect(),
+                        intersection: e.target.closest('.intersection')?.dataset
+                    });
+
+                    // If we clicked an intersection, handle it
+                    const intersection = e.target.closest('.intersection');
+                    if (intersection) {
+                        const row = parseInt(intersection.dataset.row);
+                        const col = parseInt(intersection.dataset.col);
+                        console.log('Intersection clicked:', { row, col });
+                        handleIntersectionClick(row, col);
+                    }
+                };
+
+                // Extra debug for hover events
+                GO_BOARD.onmouseover = (e) => {
+                    if (e.target.classList.contains('intersection')) {
+                        console.log('Hovering intersection:', e.target.dataset);
+                    }
+                };
+            }
+
+            // Set up click handlers outside of requestAnimationFrame
+            setupClickHandlers();
+
             requestAnimationFrame(() => {
-                GO_BOARD.innerHTML = '<div class="board-lines"></div>';
-                const linesContainer = GO_BOARD.querySelector('.board-lines');
-                if (!linesContainer) { console.error("drawBoard: linesContainer not found."); return; }
+                
                 linesContainer.innerHTML = '';
+                intersectionsLayer.innerHTML = '';
+
+                // Debug board dimensions
                 const boardWidth = GO_BOARD.clientWidth;
+                const boardHeight = GO_BOARD.clientHeight;
+                console.log('Board dimensions:', {
+                    width: boardWidth,
+                    height: boardHeight,
+                    clientRect: GO_BOARD.getBoundingClientRect(),
+                    linesRect: linesContainer.getBoundingClientRect(),
+                    intersectionsRect: intersectionsLayer.getBoundingClientRect()
+                });
                 if (boardWidth === 0) {
                     console.warn("drawBoard: boardWidth is 0, retrying...");
                     setTimeout(drawBoard, 50);
                     return;
                 }
-                GO_BOARD.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
-                GO_BOARD.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
-                const gapPercentage = 2; const boardPadding = boardWidth * (gapPercentage / 100);
-                const effectiveBoardWidth = boardWidth - 2 * boardPadding;
-                const cellPixelSize = (boardSize > 1) ? effectiveBoardWidth / (boardSize - 1) : effectiveBoardWidth;
 
-                for (let i = 0; i < boardSize; i++) {
-                    const lineOffset = boardPadding + i * cellPixelSize;
-                    const hLine = document.createElement('div'); hLine.className = 'line h-line'; hLine.style.cssText = `top:${lineOffset}px; left:${boardPadding}px; width:${effectiveBoardWidth}px;`; linesContainer.appendChild(hLine);
-                    const vLine = document.createElement('div'); vLine.className = 'line v-line'; vLine.style.cssText = `left:${lineOffset}px; top:${boardPadding}px; height:${effectiveBoardWidth}px;`; linesContainer.appendChild(vLine);
-                }
+                // Calculate cell size based on board dimensions, accounting for padding
+                const boardPadding = Math.floor(boardWidth * 0.02); // 2% padding from CSS
+                const effectiveBoardWidth = boardWidth - (2 * boardPadding);
+                const cellSize = (boardSize > 1) ? effectiveBoardWidth / (boardSize - 1) : effectiveBoardWidth;
 
-                const starPoints = getStarPoints(boardSize);
-                starPoints.forEach(p => {
-                    const star = document.createElement('div'); star.className = 'star-point'; const starOffsetRow = boardPadding + p.row * cellPixelSize; const starOffsetCol = boardPadding + p.col * cellPixelSize; const starPixelSize = Math.max(2, cellPixelSize * 0.1); star.style.cssText = `top: ${starOffsetRow}px; left: ${starOffsetCol}px; width: ${starPixelSize}px; height: ${starPixelSize}px;`; linesContainer.appendChild(star);
+                console.log('Board measurements:', {
+                    boardWidth,
+                    boardPadding,
+                    effectiveBoardWidth,
+                    cellSize
                 });
 
+                // Draw grid lines
+                for (let i = 0; i < boardSize; i++) {
+                    const lineOffset = i * cellSize;
+                    const hLine = document.createElement('div');
+                    hLine.className = 'line h-line';
+                    hLine.style.cssText = `top:${lineOffset}px; left:0; width:100%;`;
+                    linesContainer.appendChild(hLine);
+
+                    const vLine = document.createElement('div');
+                    vLine.className = 'line v-line';
+                    vLine.style.cssText = `left:${lineOffset}px; top:0; height:100%;`;
+                    linesContainer.appendChild(vLine);
+                }
+
+                // Draw star points
+                const starPoints = getStarPoints(boardSize);
+                starPoints.forEach(p => {
+                    const star = document.createElement('div');
+                    star.className = 'star-point';
+                    const starOffsetRow = p.row * cellSize;
+                    const starOffsetCol = p.col * cellSize;
+                    star.style.cssText = `top:${starOffsetRow}px; left:${starOffsetCol}px;`;
+                    linesContainer.appendChild(star);
+                });
+
+                // Clear existing intersections and stones
                 GO_BOARD.querySelectorAll('.intersection').forEach(inter => inter.remove());
                 GO_BOARD.querySelectorAll('.stone').forEach(s => s.remove());
 
+                // Create new intersections at each grid point
+                // Debug total intersections being created
+                console.log(`Creating ${boardSize * boardSize} intersections in intersections layer...`);
+                
+                // Create debug info
+                const debugInfo = document.createElement('div');
+                debugInfo.className = 'debug-info';
+                GO_BOARD.appendChild(debugInfo);
+
+                // Create intersections grid
+                console.log('\n=== Creating Intersections ===');
                 for (let r = 0; r < boardSize; r++) {
                     for (let c = 0; c < boardSize; c++) {
-                        const intersection = document.createElement('div'); intersection.className = 'intersection'; intersection.dataset.row = r; intersection.dataset.col = c;
-                        intersection.style.gridRowStart = r + 1; intersection.style.gridColumnStart = c + 1;
-                        intersection.onclick = () => handleIntersectionClick(r, c);
+                        const intersection = document.createElement('div');
+                        intersection.className = 'intersection';
+                        intersection.dataset.row = r;
+                        intersection.dataset.col = c;
+
+                        // Calculate position including padding
+                        const top = boardPadding + (r * cellSize);
+                        const left = boardPadding + (c * cellSize);
+                        
+                        // Add debug label
+                        intersection.textContent = `${r},${c}`;
+
+                        // Set position and style
+                        Object.assign(intersection.style, {
+                            position: 'absolute',
+                            top: `${top}px`,
+                            left: `${left}px`,
+                            width: '30px',
+                            height: '30px',
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: '20',
+                            cursor: 'pointer',
+                            backgroundColor: 'rgba(255, 0, 0, 0.3)',
+                            border: '2px solid rgba(255, 0, 0, 0.5)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '8px',
+                            color: 'black',
+                            pointerEvents: 'auto'
+                        });
+                        
+                        // Add direct click handler for debugging
+                        intersection.onclick = (e) => {
+                            e.stopPropagation();
+                            console.log('\n=== Intersection Click ===');
+                            console.log(`Position: (${r}, ${c})`);
+                            const rect = intersection.getBoundingClientRect();
+                            console.log('Bounds:', {
+                                top: Math.round(rect.top),
+                                left: Math.round(rect.left),
+                                width: Math.round(rect.width),
+                                height: Math.round(rect.height)
+                            });
+                            handleIntersectionClick(r, c);
+                        };
+                        
+                        // Add mouse tracking and hover debug
+                        intersection.onmouseover = (e) => {
+                            const rect = intersection.getBoundingClientRect();
+                            debugInfo.textContent = `Mouse over (${r},${c}) at ${Math.round(e.clientX - rect.left)}, ${Math.round(e.clientY - rect.top)}`;
+                            intersection.style.backgroundColor = 'rgba(255, 255, 0, 0.5)';
+                            console.log('Hover:', {
+                                pos: `${r},${c}`,
+                                rect: rect,
+                                mouse: { x: e.clientX, y: e.clientY }
+                            });
+                        };
+                        
+                        intersection.onmouseout = () => {
+                            debugInfo.textContent = '';
+                            intersection.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                        };
+
+                        // Log final position and append
+                        const finalRect = intersection.getBoundingClientRect();
+                        console.log(`Intersection (${r},${c}) final:`, {
+                            top: Math.round(finalRect.top),
+                            left: Math.round(finalRect.left),
+                            width: Math.round(finalRect.width),
+                            height: Math.round(finalRect.height)
+                        });
+
+                        intersectionsLayer.appendChild(intersection);
+                            left: Math.round(left),
+                            rect: intersection.getBoundingClientRect()
+                        });
+
+                        intersectionsLayer.appendChild(intersection);
+                        });
+
+                        intersectionsLayer.appendChild(intersection);
+                            event.stopPropagation();
+                            console.log('\n=== Intersection Click ===');
+                            console.log(`Clicked: row ${r}, col ${c}`);
+                            console.log('Event details:', {
+                                type: event.type,
+                                target: event.target,
+                                currentTarget: event.currentTarget,
+                                clientX: event.clientX,
+                                clientY: event.clientY
+                            });
+                            console.log('Element details:', {
+                                rect: intersection.getBoundingClientRect(),
+                                style: intersection.style.cssText,
+                                className: intersection.className,
+                                parentNode: intersection.parentNode.className
+                            });
+                            handleIntersectionClick(r, c);
+                        };
+
+                        // Add to intersections layer
+                        intersectionsLayer.appendChild(intersection);
+                        
+                        // Debug intersection after append
+                        console.log(`Intersection ${r},${c} rect:`, intersection.getBoundingClientRect());
+                        intersection.onclick = () => {
+                            console.log('Intersection click event fired');
+                            console.log(`Click coordinates: row ${r}, col ${c}`);
+                            console.log('Current game state:', {
+                                gameStarted,
+                                gameOver,
+                                currentPlayer,
+                                gameMode
+                            });
+                            handleIntersectionClick(r, c);
+                        };
                         if (showCoordinates) { addCoordLabels(intersection, r, c); }
                         GO_BOARD.appendChild(intersection);
 
@@ -529,7 +997,18 @@
         function getStarPoints(size) { if (size === 9) return [{row: 2, col: 2}, {row: 2, col: 6}, {row: 4, col: 4}, {row: 6, col: 2}, {row: 6, col: 6}]; if (size === 13) return [{row: 3, col: 3}, {row: 3, col: 9}, {row: 6, col: 6}, {row: 9, col: 3}, {row: 9, col: 9}]; if (size === 19) return [ {row: 3, col: 3}, {row: 3, col: 9}, {row: 3, col: 15}, {row: 9, col: 3}, {row: 9, col: 9}, {row: 9, col: 15}, {row: 15, col: 3}, {row: 15, col: 9}, {row: 15, col: 15} ]; return []; }
 
         function handleIntersectionClick(row, col) {
+            console.log('=== Handle Intersection Click ===');
+            console.log(`Position: row ${row}, col ${col}`);
+            console.log('Game state:', {
+                gameStarted,
+                gameOver,
+                gameMode,
+                currentPlayer,
+                boardSize
+            });
+
             if (gameOver) {
+                console.log('Game is over, starting new game...');
                 startGame(DEFAULT_GAME_MODE, DEFAULT_BOARD_SIZE);
                 setMessage("Started default game (9x9 vs AI). Black's turn.");
                 return;
@@ -994,8 +1473,22 @@
             currentHintVisual = null;
         }
 
+        function explainHint(move) {
+            const explanations = {
+                "A2": "to secure territory on the lower left side and threaten Black's corner.",
+                // Add more moves and explanations here as needed
+                "default": "to strategically position your stone for potential territory gain."
+            };
+            return explanations[move] || explanations["default"];
+        }
+
         function createAndPositionHintVisual(r, c, updateMessage = true) {
-            clearHint(); 
+            clearHint();
+            if (updateMessage) {
+                const hintCoordinate = `${String.fromCharCode(65 + c)}${boardSize - r}`;
+                const explanation = explainHint(hintCoordinate);
+                setMessage(`Hint: Consider placing a stone at ${hintCoordinate} ${explanation}`);
+            }
 
             const boardWidth = GO_BOARD.clientWidth;
             if (boardWidth === 0) { console.warn("Cannot create hint, board width is 0."); return; }
@@ -1023,7 +1516,10 @@
                 currentHintVisual = hintVisual;
                 if (updateMessage) {
                     const hintCoord = `${String.fromCharCode(65 + c)}${boardSize - r}`;
-                    setMessage(`Hint: Consider placing a stone at ${hintCoord}`);
+                    // Add explanation to hint if explainHint function exists
+                    const baseHint = `Hint: Consider placing a stone at ${hintCoord}`;
+                    const explanation = typeof explainHint === 'function' ? explainHint(hintCoord) : '';
+                    setMessage(baseHint + explanation);
                 }
             } else {
                 console.warn("Could not calculate valid hint position/size.");
@@ -1067,6 +1563,41 @@
             }
 
             document.addEventListener('click', function(event) { if (OPTIONS_MENU && !OPTIONS_MENU.classList.contains('open')) { /* Do nothing if already closed */ } else if (OPTIONS_MENU && OPTIONS_MENU.classList.contains('open') && !OPTIONS_MENU.contains(event.target) && MENU_TOGGLE_BTN && !MENU_TOGGLE_BTN.contains(event.target)) { closeOptionsMenu(); } });
+
+            // Add hover sound effect for empty intersections
+            try {
+                const hoverSound = document.getElementById('hoverSound');
+                console.log('Hover sound element:', hoverSound);
+                
+                function playHoverSound() {
+                    if (hoverSound) {
+                        hoverSound.currentTime = 0; // Reset to start for rapid hovers
+                        hoverSound.play().catch(error => {
+                            console.warn("Audio playback failed:", error);
+                        });
+                    }
+                }
+                
+                if (GO_BOARD) {
+                    GO_BOARD.addEventListener('mouseover', function(event) {
+                        if (event.target.classList.contains('intersection')) {
+                            console.log('Hover over intersection detected');
+                            const row = parseInt(event.target.dataset.row);
+                            const col = parseInt(event.target.dataset.col);
+                            if (boardState[row][col] === EMPTY) {
+                                console.log(`Playing hover sound for empty intersection at ${row}, ${col}`);
+                                playHoverSound();
+                            }
+                        }
+                    });
+                    console.log('Hover event listener added successfully');
+                } else {
+                    console.error('GO_BOARD element not found for hover listener');
+                }
+            } catch (error) {
+                console.error('Error setting up hover sound:', error);
+                console.error('Error stack:', error.stack);
+            }
             NEW_GAME_PVP_BTN.onclick = () => { startGame('pvp', parseInt(BOARD_SIZE_SELECT.value)); closeOptionsMenu(); };
             NEW_GAME_PVC_BTN.onclick = () => { startGame('pvc', parseInt(BOARD_SIZE_SELECT.value)); closeOptionsMenu(); };
             PASS_TURN_BTN.onclick = () => handlePass();
@@ -1077,12 +1608,45 @@
             let resizeTimeout; window.onresize = () => { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(drawBoard, 250); };
         }
 
+        // --- Helper Functions ---
+        function explainHint(move) {
+            const explanations = {
+                'A2': ' to secure territory on the lower left side and threaten Black\'s corner.',
+                'B2': ' to establish a strong base on the left side.',
+                'C3': ' to claim the corner territory.',
+                // Add more explanations as needed
+            };
+            return explanations[move] || ' for strategic positioning.';
+        }
+
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            loadSettings(); // Load settings on startup
-            setupModalInteractions();
-            setupEventListeners();
-            drawEmptyBoard(parseInt(BOARD_SIZE_SELECT.value));
+            console.log('DOM loaded, initializing Go board...');
+            try {
+                console.log('Loading settings...');
+                loadSettings(); // Load settings on startup
+                console.log('Settings loaded successfully');
+                
+                console.log('Setting up modal interactions...');
+                setupModalInteractions();
+                console.log('Modal interactions set up successfully');
+                
+                console.log('Setting up event listeners...');
+                setupEventListeners();
+                console.log('Event listeners set up successfully');
+                
+                console.log('Drawing empty board...');
+                drawEmptyBoard(parseInt(BOARD_SIZE_SELECT.value));
+                console.log('Empty board drawn successfully');
+                
+                console.log('Go board initialized successfully');
+                console.log('Game started:', gameStarted);
+                console.log('Current player:', currentPlayer);
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                console.error('Error stack:', error.stack);
+                console.error('Error message:', error.message);
+            }
         });
 
     </script>
