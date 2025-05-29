@@ -291,11 +291,60 @@
     </div>
 
     <div id="save-load-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('save-load-modal')">&times;</span> <h2 id="save-load-title" class="text-xl font-semibold mb-4">Load Game</h2> <div id="saved-games-list"> <p class="text-gray-400">No saved games found.</p> </div> <input type="text" id="save-name-input" placeholder="Enter save name (optional)" class="text-input mt-4 hidden"> <button id="confirm-save-button" class="game-button mt-4 hidden">Save Current Game</button> </div> </div>
-    <div id="host-game-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('host-game-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Host Game</h2> <p>Share this three-word key with your opponent:</p> <p id="invite-key" class="text-2xl font-bold my-4 text-center bg-gray-700 p-3 rounded">--- --- ---</p> <p class="text-gray-400 text-sm">Waiting for opponent to join via Jami...</p> <p class="text-gray-400 text-sm">(Note: Actual Jami connection needs external setup)</p> <button class="game-button mt-4" onclick="closeModal('host-game-modal')">Close</button> </div> </div>
-    <div id="join-game-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('join-game-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Join Game</h2> <label for="join-key-input">Enter the three-word key from the host:</label> <input type="text" id="join-key-input" class="text-input" placeholder="word-word-word"> <button id="confirm-join-button" class="game-button mt-4">Join via Jami</button> <p class="text-gray-400 text-sm mt-2">(Note: Actual Jami connection needs external setup)</p> </div> </div>
-    <div id="tutorial-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('tutorial-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Go Tutorial</h2> <div id="tutorial-content" class="space-y-4 max-h-96 overflow-y-auto"> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">1. The Board & Stones</h3> <p>Go is played on a grid (commonly 9x9, 13x13, or 19x19). Players take turns placing black and white stones on the intersections of the lines, not inside the squares.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">2. Objective</h3> <p>The goal is to surround more territory (empty intersections) than your opponent. You also score points for captured stones.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">3. Placing Stones</h3> <p>Click on an empty intersection to place your stone. Black plays first.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">4. Liberties & Capture</h3> <p>A stone or group of connected stones needs "liberties" (adjacent empty intersections) to stay on the board. If a player places a stone that removes the last liberty of an opponent's stone or group, those stones are captured and removed from the board.</p> <p class="mt-1 text-sm text-gray-300">Example: If a white stone is surrounded on all four adjacent intersections by black stones, the white stone is captured.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">5. Illegal Moves</h3> <ul> <li><strong>Suicide:</strong> You cannot place a stone that results in its own immediate capture unless that move simultaneously captures opponent stones.</li> <li><strong>Ko Rule:</strong> You cannot immediately recapture a single stone if doing so would return the board to the exact state it was in just before your opponent's previous move. You must play elsewhere first.</li> </ul> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">6. Passing & Ending the Game</h3> <p>If you believe there are no more useful moves, you can "Pass". The game ends when both players pass consecutively. Then, territory and captures are counted to determine the winner.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">7. Scoring (Simplified)</h3> <p>Count the empty intersections you have surrounded. Add the number of stones you captured. The player with the higher score wins. (Official scoring includes Komi - points added to White's score to compensate for Black playing first).</p> </div> </div> <button class="game-button mt-6" onclick="closeModal('tutorial-modal')">Got it!</button> </div> </div>
-    <div id="about-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('about-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">About Go Master</h2> <p>Go Master - Part of the RobinsAI.world Board Game Series.</p> <p class="mt-2">An interactive Go game featuring Player vs. Player (via Jami - external setup required) and Player vs. AI modes.</p> <p class="mt-4 text-sm text-gray-400">Developed with HTML, Tailwind CSS, and JavaScript.</p> <button class="game-button mt-6" onclick="closeModal('about-modal')">Close</button> </div> </div>
-    <div id="settings-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('settings-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Settings</h2> <p>Game settings will go here (e.g., AI difficulty, Komi value, themes).</p> <p class="mt-4 text-sm text-gray-400">(Currently under development)</p> <button class="game-button mt-6" onclick="closeModal('settings-modal')">Close</button> </div> </div>
+    <div id="host-game-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('host-game-modal')">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Host Game (P2P Placeholder)</h2>
+            <p>Share this three-word key with your opponent:</p>
+            <p id="invite-key" class="text-2xl font-bold my-4 text-center bg-gray-700 p-3 rounded">--- --- ---</p>
+            <!-- Developer Note: The Jami P2P functionality below is a placeholder.
+                 A real Jami client and integration logic are required for this to work.
+                 The invite key is generated, but no actual network connection is established by this web page alone.
+                 This modal simulates waiting for a connection but is non-functional for actual P2P. -->
+            <p class="text-yellow-400 text-sm font-semibold">Waiting for opponent to join via Jami (THIS IS A STUB FEATURE)...</p>
+            <p class="text-gray-400 text-sm mt-1">(Note: Actual Jami P2P connection and gameplay requires significant external setup and is NOT currently implemented in this application.)</p>
+            <button class="game-button mt-4" onclick="closeModal('host-game-modal')">Close</button>
+        </div>
+    </div>
+    <div id="join-game-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('join-game-modal')">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Join Game (P2P Placeholder)</h2>
+            <label for="join-key-input">Enter the three-word key from the host:</label>
+            <input type="text" id="join-key-input" class="text-input" placeholder="word-word-word">
+            <!-- Developer Note: The Jami P2P functionality below is a placeholder.
+                 Pressing 'Join' will simulate starting a P2P game locally but does not establish
+                 a real network connection via Jami or any other P2P mechanism. -->
+            <button id="confirm-join-button" class="game-button mt-4">Join via Jami (STUB FEATURE)</button>
+            <p class="text-gray-400 text-sm mt-2">(Note: Actual Jami P2P connection and gameplay requires significant external setup and is NOT currently implemented in this application.)</p>
+        </div>
+    </div>
+    <div id="tutorial-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('tutorial-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">Go Tutorial</h2> <div id="tutorial-content" class="space-y-4 max-h-96 overflow-y-auto"> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">1. The Board & Stones</h3> <p>Go is played on a grid (commonly 9x9, 13x13, or 19x19). Players take turns placing black and white stones on the intersections of the lines, not inside the squares.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">2. Objective</h3> <p>The goal is to surround more territory (empty intersections) than your opponent. You also score points for captured stones.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">3. Placing Stones</h3> <p>Click on an empty intersection to place your stone. Black plays first.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">4. Liberties & Capture</h3> <p>A stone or group of connected stones needs "liberties" (adjacent empty intersections) to stay on the board. If a player places a stone that removes the last liberty of an opponent's stone or group, those stones are captured and removed from the board.</p> <p class="mt-1 text-sm text-gray-300">Example: If a white stone is surrounded on all four adjacent intersections by black stones, the white stone is captured.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">5. Illegal Moves</h3> <ul> <li><strong>Suicide:</strong> You cannot place a stone that results in its own immediate capture unless that move simultaneously captures opponent stones.</li> <li><strong>Ko Rule:</strong> You cannot immediately recapture a single stone if doing so would return the board to the exact state it was in just before your opponent's previous move. You must play elsewhere first.</li> </ul> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">6. Passing & Ending the Game</h3> <p>If you believe there are no more useful moves, you can "Pass". The game ends when both players pass consecutively. Then, territory and captures are counted to determine the winner.</p> </div> <div class="tutorial-card"> <h3 class="font-semibold text-lg mb-2">7. Scoring</h3> <p>The game is scored by counting territory and captures. <strong>Territory</strong> consists of the empty intersections you have completely surrounded with your stones. Each captured opponent stone also counts as one point. <strong>Komi</strong> (typically 5.5 to 7.5 points) is added to White's score to compensate for Black playing first. This value can often be adjusted in the Settings. The player with the higher total score (territory + captures + Komi for White) wins.</p> </div> </div> <button class="game-button mt-6" onclick="closeModal('tutorial-modal')">Got it!</button> </div> </div>
+    <div id="about-modal" class="modal"> <div class="modal-content"> <span class="modal-close" onclick="closeModal('about-modal')">&times;</span> <h2 class="text-xl font-semibold mb-4">About Go Master</h2> <p>Go Master - Part of the RobinsAI.world Board Game Series.</p> <p class="mt-2">This interactive Go game features Player vs. Player (P2P functionality is a STUB and requires external Jami setup) and Player vs. AI modes, implementing standard Go rules including area scoring and configurable Komi.</p> <p class="mt-4 text-sm text-gray-400">Developed with HTML, Tailwind CSS, and JavaScript.</p> <button class="game-button mt-6" onclick="closeModal('about-modal')">Close</button> </div> </div>
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('settings-modal')">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Settings</h2>
+            
+            <div class="mb-4">
+                <label for="komi-input" class="block text-sm font-medium text-gray-300 mb-1">Komi</label>
+                <input type="number" id="komi-input" step="0.5" class="text-input w-full">
+            </div>
+
+            <div class="mb-6">
+                <label for="ai-difficulty-select" class="block text-sm font-medium text-gray-300 mb-1">AI Difficulty</label>
+                <select id="ai-difficulty-select" class="game-button bg-gray-700 text-white p-2 rounded w-full">
+                    <option value="easy">Easy</option>,
+                    <option value="medium">Medium (Placeholder)</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button class="game-button px-4 py-2" onclick="closeModal('settings-modal')">Close</button>
+                <button id="save-settings-button" class="game-button bg-blue-600 hover:bg-blue-500 px-4 py-2">Save Settings</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // --- Constants and State ---
@@ -324,6 +373,10 @@
         const TUTORIAL_BTN = document.getElementById('tutorial-button');
         const ABOUT_BTN = document.getElementById('about-button');
         const SETTINGS_BTN = document.getElementById('settings-button');
+        const KOMI_INPUT = document.getElementById('komi-input');
+        const AI_DIFFICULTY_SELECT = document.getElementById('ai-difficulty-select');
+        const SAVE_SETTINGS_BTN = document.getElementById('save-settings-button');
+
 
         const EMPTY = 0; const BLACK = 1; const WHITE = 2;
         const DEFAULT_GAME_MODE = 'pvc';
@@ -340,9 +393,31 @@
         let showCoordinates = false;
         let currentHintVisual = null;
         let inGameControlsAreVisible = true; // For the accordion content within the tray
+        let komi = 6.5; // Default Komi
+        let aiDifficulty = 'easy'; // Default AI difficulty
+
 
         // --- Jami Placeholder Functions ---
+        /**
+         * [JAMI STUB] Placeholder for sending data to a Jami peer.
+         * In a real Jami integration, this function would:
+         * 1. Serialize the 'data' object (e.g., to JSON).
+         * 2. Use the Jami daemon or library to send the serialized data to the peer identified by 'key'.
+         * 3. Handle potential errors in sending.
+         * This current version only logs to the console, simulating a send action.
+         */
         const jamiSend = (key, data) => { console.log(`[JAMI STUB] Sending to key ${key}:`, data); };
+
+        /**
+         * [JAMI STUB] Placeholder for receiving data from a Jami peer.
+         * In a real Jami integration, this function would typically be a callback triggered by the Jami client
+         * when a message is received over the P2P network.
+         * It would:
+         * 1. Deserialize the incoming 'data' (e.g., from JSON if it was sent that way).
+         * 2. Determine the type of message (e.g., move, pass, resign, chat).
+         * 3. Call the appropriate game logic function to update the game state or UI.
+         * This current version is primarily for illustrating where incoming P2P data would be processed.
+         */
         const jamiReceive = (data) => {
             console.log("[JAMI STUB] Received data:", data);
             if (gameMode !== 'pvp') return;
@@ -492,9 +567,295 @@
         function handlePass(receivedPass = false) { if (gameOver) return; clearMessage(); clearHint(); passCounter++; const opponent = currentPlayer === BLACK ? WHITE : BLACK; setMessage(`${currentPlayer === BLACK ? 'Black' : 'White'} passed.`); if (gameMode === 'pvp' && !receivedPass) { jamiSend(document.getElementById('invite-key')?.textContent || 'default-key', { type: 'pass', player: currentPlayer }); } currentPlayer = opponent; updateTurnIndicator(); if (passCounter >= 2) { endGame(); } else if (gameMode === 'pvc' && currentPlayer === WHITE && !gameOver) { setTimeout(aiMove, 500); } }
         function handleResign(receivedResign = false) { if (gameOver) return; clearHint(); const winner = currentPlayer === BLACK ? WHITE : BLACK; setMessage(`${currentPlayer === BLACK ? 'Black' : 'White'} resigned. ${winner === BLACK ? 'Black' : 'White'} wins!`); gameOver = true; TURN_INDICATOR.textContent = "Game Over"; SAVE_GAME_BTN.disabled = true; HOST_GAME_BTN.disabled = true; GET_HINT_BTN.disabled = true; if (gameMode === 'pvp' && !receivedResign) { jamiSend(document.getElementById('invite-key')?.textContent || 'default-key', { type: 'resign', player: currentPlayer }); } IN_GAME_CONTROLS_CONTAINER.classList.add('hidden');}
         function endGame() { gameOver = true; clearHint(); setMessage("Both players passed. Game Over. Scoring..."); const score = calculateScore(); TURN_INDICATOR.textContent = `Game Over! ${score.winner} wins. Score: B ${score.black} - W ${score.white}`; SAVE_GAME_BTN.disabled = true; HOST_GAME_BTN.disabled = true; GET_HINT_BTN.disabled = true; IN_GAME_CONTROLS_CONTAINER.classList.add('hidden'); }
-        function calculateScore() { let blackScore = captures[BLACK]; let whiteScore = captures[WHITE] + 6.5; setMessage("Scoring estimate based on captures + Komi."); return { black: blackScore, white: whiteScore, winner: whiteScore > blackScore ? 'White' : 'Black' }; }
 
-        function aiMove() { if (gameOver || currentPlayer !== WHITE || gameMode !== 'pvc') return; setMessage("AI is thinking..."); TURN_INDICATOR.textContent = "AI's Turn (White)"; let validMoves = []; for (let r = 0; r < boardSize; r++) { for (let c = 0; c < boardSize; c++) { if (isValidMove(r, c, WHITE)) { validMoves.push({ r, c }); } } } if (validMoves.length === 0) { handlePass(); setMessage("AI passes."); return; } let bestMove = null; let maxCaptures = -1; let goodNonCaptureMoves = []; for (const move of validMoves) { const tempBoardState = JSON.parse(JSON.stringify(boardState)); tempBoardState[move.r][move.c] = WHITE; let capturesMade = 0; const opponent = BLACK; const neighbors = getNeighbors(move.r, move.c); let groupsToRemoveSim = []; for (const { r: nr, c: nc } of neighbors) { if (tempBoardState[nr][nc] === opponent) { const group = findGroupSimulated(nr, nc, tempBoardState); if (countLibertiesSimulated(group, tempBoardState) === 0) { capturesMade += group.stones.length; groupsToRemoveSim.push(group); } } } groupsToRemoveSim.forEach(group => group.stones.forEach(({ r, c }) => tempBoardState[r][c] = EMPTY)); const ownGroup = findGroupSimulated(move.r, move.c, tempBoardState); const selfLiberties = countLibertiesSimulated(ownGroup, tempBoardState); if (capturesMade > 0) { if (capturesMade > maxCaptures) { maxCaptures = capturesMade; bestMove = move; } } else if (maxCaptures <= 0 && selfLiberties > 1) { goodNonCaptureMoves.push(move); } } if (bestMove) { /* Prioritize capture */ } else if (goodNonCaptureMoves.length > 0) { bestMove = goodNonCaptureMoves[Math.floor(Math.random() * goodNonCaptureMoves.length)]; } else { bestMove = validMoves[Math.floor(Math.random() * validMoves.length)]; } const success = placeStone(bestMove.r, bestMove.c, WHITE); if (!success) { console.error("AI failed move.", bestMove); handlePass(); setMessage("AI error, passes."); } else { setMessage(`AI placed at ${String.fromCharCode(65 + bestMove.c)}${boardSize - bestMove.r}`); } }
+        // --- Scoring Logic ---
+        function calculateScore() {
+            let blackTerritory = 0;
+            let whiteTerritory = 0;
+            const visited = Array(boardSize).fill(null).map(() => Array(boardSize).fill(false));
+            // Komi is now a global variable, loaded from settings
+
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if (boardState[r][c] === EMPTY && !visited[r][c]) {
+                        const { territory, owner } = floodFillAndIdentifyOwner(r, c, visited);
+                        if (owner === BLACK) {
+                            blackTerritory += territory;
+                        } else if (owner === WHITE) {
+                            whiteTerritory += territory;
+                        }
+                        // Neutral points are not added to any score
+                    }
+                }
+            }
+
+            const blackScore = blackTerritory + captures[BLACK];
+            const whiteScore = whiteTerritory + captures[WHITE] + komi;
+
+            setMessage("Scoring based on territory, captures + Komi.");
+            return {
+                black: blackScore,
+                white: whiteScore,
+                winner: whiteScore > blackScore ? 'White' : 'Black'
+            };
+        }
+
+        function floodFillAndIdentifyOwner(startR, startC, visited) {
+            const queue = [{ r: startR, c: startC }];
+            visited[startR][startC] = true;
+            let count = 0;
+            let bordersBlack = false;
+            let bordersWhite = false;
+            const currentTerritoryPoints = [];
+
+            while (queue.length > 0) {
+                const { r, c } = queue.shift();
+                count++;
+                currentTerritoryPoints.push({r, c});
+
+                const neighbors = getNeighbors(r, c);
+                for (const neighbor of neighbors) {
+                    if (boardState[neighbor.r][neighbor.c] === EMPTY && !visited[neighbor.r][neighbor.c]) {
+                        visited[neighbor.r][neighbor.c] = true;
+                        queue.push({ r: neighbor.r, c: neighbor.c });
+                    } else if (boardState[neighbor.r][neighbor.c] === BLACK) {
+                        bordersBlack = true;
+                    } else if (boardState[neighbor.r][neighbor.c] === WHITE) {
+                        bordersWhite = true;
+                    }
+                }
+            }
+            
+            // Check all points in the identified region for borders
+            // This is important because the initial flood fill only checks direct borders of the flood-filled points
+            // A region might be bordered by both colors if it's large and snakes around
+            const allPointsInRegion = [...currentTerritoryPoints]; // Use a copy if modifying currentTerritoryPoints
+            const pointsToCheck = new Set(allPointsInRegion.map(p => `${p.r},${p.c}`));
+            const boundaryQueue = [...allPointsInRegion];
+            const checkedForBorder = new Set(); // To avoid re-checking same points for border determination
+
+            while(boundaryQueue.length > 0){
+                const {r,c} = boundaryQueue.shift();
+                if(checkedForBorder.has(`${r},${c}`)) continue;
+                checkedForBorder.add(`${r},${c}`);
+
+                const neighbors = getNeighbors(r,c);
+                for(const neighbor of neighbors){
+                    // If neighbor is outside the current flood-filled region
+                    if(!pointsToCheck.has(`${neighbor.r},${neighbor.c}`)){
+                        if(boardState[neighbor.r][neighbor.c] === BLACK) bordersBlack = true;
+                        else if(boardState[neighbor.r][neighbor.c] === WHITE) bordersWhite = true;
+                    }
+                }
+            }
+
+
+            if (bordersBlack && !bordersWhite) {
+                return { territory: count, owner: BLACK };
+            } else if (bordersWhite && !bordersBlack) {
+                return { territory: count, owner: WHITE };
+            } else {
+                // Either borders both (neutral) or borders none (should not happen in a finished game if board is filled)
+                return { territory: count, owner: EMPTY }; // EMPTY can signify neutral
+            }
+        }
+
+        function evaluateTerritorialValue(row, col, player, currentBoardState) {
+            let score = 0;
+            const opponent = player === BLACK ? WHITE : BLACK;
+            const tempBoardState = JSON.parse(JSON.stringify(currentBoardState));
+            tempBoardState[row][col] = player; // Place the stone for evaluation
+
+            // Helper to check ownership of an empty point's surroundings
+            function checkEmptyPointInfluence(r, c) {
+                let friendlyStones = 0;
+                let opponentStones = 0;
+                let emptyNeighbors = 0;
+                const pointNeighbors = getNeighbors(r, c);
+                for (const { r: nr, c: nc } of pointNeighbors) {
+                    if (tempBoardState[nr][nc] === player) friendlyStones++;
+                    else if (tempBoardState[nr][nc] === opponent) opponentStones++;
+                    else emptyNeighbors++;
+                }
+                // Simple heuristic: strongly influenced if more friendly stones than opponent, and not too many empty
+                if (friendlyStones > opponentStones && emptyNeighbors <= 2) return 1; // Potential territory
+                if (friendlyStones > 0 && opponentStones === 0 && emptyNeighbors <=3) return 0.5; // Weaker influence
+                return 0;
+            }
+
+            // 1. Check direct influence on adjacent empty spots
+            const directNeighbors = getNeighbors(row, col);
+            for (const { r: nr, c: nc } of directNeighbors) {
+                if (tempBoardState[nr][nc] === EMPTY) {
+                    score += checkEmptyPointInfluence(nr, nc);
+                }
+                // 2. Bonus for connecting to own stones or forming a wall
+                else if (tempBoardState[nr][nc] === player) {
+                    score += 0.2; // Small bonus for connecting
+                }
+                // 3. Bonus for pushing against opponent stones (potential to cut or reduce)
+                else if (tempBoardState[nr][nc] === opponent) {
+                    score += 0.1;
+                }
+            }
+            
+            // 4. Consider liberties of the new stone/group - more liberties is generally good
+            const ownGroup = findGroupSimulated(row, col, tempBoardState);
+            const liberties = countLibertiesSimulated(ownGroup, tempBoardState);
+            if (liberties === 1) score -= 2; // Penalize moves that result in 1 liberty unless capture
+            if (liberties === 2) score += 0.1;
+            if (liberties >= 3) score += 0.3;
+
+
+            // 5. Check if the move solidifies territory around existing friendly stones
+            // Iterate over friendly stones near the move and see if this move helps secure empty points near them
+            for (const { r: nr, c: nc } of directNeighbors) { // Check around the placed stone
+                if (tempBoardState[nr][nc] === player) { // If there's an existing friendly stone
+                    const friendlyStoneNeighbors = getNeighbors(nr, nc);
+                    for (const {r: nnr, c: nnc} of friendlyStoneNeighbors) {
+                        if (tempBoardState[nnr][nnc] === EMPTY) { // For empty points next to that friendly stone
+                           score += checkEmptyPointInfluence(nnr, nnc) * 0.5; // Add weighted score
+                        }
+                    }
+                }
+            }
+            return score;
+        }
+
+
+        function aiMove() {
+            if (gameOver || currentPlayer !== WHITE || gameMode !== 'pvc') return;
+            setMessage("AI is thinking...");
+            TURN_INDICATOR.textContent = "AI's Turn (White)";
+
+            // Placeholder for AI difficulty based logic
+            // if (aiDifficulty === 'easy') { ... } else if (aiDifficulty === 'medium') { ... }
+
+            let validMoves = [];
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if (isValidMove(r, c, WHITE)) {
+                        validMoves.push({ r, c });
+                    }
+                }
+            }
+
+            if (validMoves.length === 0) {
+                handlePass();
+                setMessage("AI passes.");
+                return;
+            }
+
+            let bestMove = null;
+            let maxCaptures = -1;
+            let bestCaptureMove = null;
+
+            // 1. Prioritize Captures
+            for (const move of validMoves) {
+                const tempBoardStateCapture = JSON.parse(JSON.stringify(boardState));
+                tempBoardStateCapture[move.r][move.c] = WHITE;
+                let capturesMade = 0;
+                const opponent = BLACK;
+                const neighbors = getNeighbors(move.r, move.c);
+                
+                for (const { r: nr, c: nc } of neighbors) {
+                    if (tempBoardStateCapture[nr][nc] === opponent) {
+                        const group = findGroupSimulated(nr, nc, tempBoardStateCapture);
+                        if (countLibertiesSimulated(group, tempBoardStateCapture) === 0) {
+                            // Need to simulate removal for correct liberty count of AI's subsequent group
+                            const groupStones = group.stones;
+                            groupStones.forEach(s => tempBoardStateCapture[s.r][s.c] = EMPTY);
+                            capturesMade += groupStones.length;
+                        }
+                    }
+                }
+                
+                // Check for suicide only if no captures were made by this move
+                if (capturesMade > 0) {
+                     const ownGroupAfterCapture = findGroupSimulated(move.r, move.c, tempBoardStateCapture);
+                     if (countLibertiesSimulated(ownGroupAfterCapture, tempBoardStateCapture) > 0) { // Not suicide after capture
+                        if (capturesMade > maxCaptures) {
+                            maxCaptures = capturesMade;
+                            bestCaptureMove = move;
+                        }
+                     }
+                }
+            }
+
+            if (bestCaptureMove) {
+                bestMove = bestCaptureMove;
+            } else {
+                // 2. Territorial Evaluation
+                let bestTerritorialScore = -Infinity;
+                let goodTerritorialMoves = [];
+
+                for (const move of validMoves) {
+                    // Ensure the move is not suicide (even if it doesn't capture)
+                    const tempBoardStateNoCapture = JSON.parse(JSON.stringify(boardState));
+                    tempBoardStateNoCapture[move.r][move.c] = WHITE;
+                    const ownGroup = findGroupSimulated(move.r, move.c, tempBoardStateNoCapture);
+                    if (countLibertiesSimulated(ownGroup, tempBoardStateNoCapture) === 0) {
+                        continue; // Skip suicidal moves if they don't capture
+                    }
+
+                    const territorialScore = evaluateTerritorialValue(move.r, move.c, WHITE, boardState);
+                    if (territorialScore > bestTerritorialScore) {
+                        bestTerritorialScore = territorialScore;
+                        goodTerritorialMoves = [move];
+                    } else if (territorialScore === bestTerritorialScore) {
+                        goodTerritorialMoves.push(move);
+                    }
+                }
+
+                if (goodTerritorialMoves.length > 0) {
+                    bestMove = goodTerritorialMoves[Math.floor(Math.random() * goodTerritorialMoves.length)];
+                } else {
+                    // 3. Fallback: Random valid move (already filtered for basic suicide)
+                    // validMoves should already contain non-suicidal moves if they don't capture.
+                    // The isValidMove function checks for basic suicide.
+                    // If a move leads to immediate self-capture without capturing opponent stones, isValidMove returns false.
+                    // So, we can pick randomly from the remaining validMoves.
+                    if (validMoves.length > 0) {
+                         bestMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    } else {
+                        // This case should ideally be covered by the initial validMoves.length === 0 check
+                        // but as a safeguard:
+                        handlePass();
+                        setMessage("AI passes (no valid non-suicidal moves).");
+                        return;
+                    }
+                }
+            }
+            
+            // If after all considerations, no bestMove is found (e.g. all moves are suicidal without capture
+            // and no good territorial moves), AI should pass. This is unlikely if validMoves has items.
+            if (!bestMove && validMoves.length > 0) {
+                 // This can happen if all valid moves were filtered out by territorial logic as having negative scores,
+                 // and we didn't explicitly keep a "least bad" option.
+                 // For now, pick a random one from original valid moves if goodTerritorialMoves is empty.
+                 bestMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+            } else if (!bestMove) { // No valid moves at all
+                handlePass();
+                setMessage("AI passes (no moves found).");
+                return;
+            }
+
+
+            const success = placeStone(bestMove.r, bestMove.c, WHITE);
+            if (!success) {
+                console.error("AI failed to make a calculated move, attempting random fallback or pass.", bestMove);
+                // Try a truly random valid move if the calculated one failed (should be rare)
+                const randomFallbackMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                if (randomFallbackMove && placeStone(randomFallbackMove.r, randomFallbackMove.c, WHITE)) {
+                     setMessage(`AI made a random fallback move to ${String.fromCharCode(65 + randomFallbackMove.c)}${boardSize - randomFallbackMove.r}`);
+                } else {
+                    handlePass();
+                    setMessage("AI error, passes.");
+                }
+            } else {
+                setMessage(`AI placed at ${String.fromCharCode(65 + bestMove.c)}${boardSize - bestMove.r}`);
+            }
+        }
         function isValidMove(row, col, player) { if (row < 0 || row >= boardSize || col < 0 || col >= boardSize || boardState[row][col] !== EMPTY) { return false; } const tempBoardState = JSON.parse(JSON.stringify(boardState)); tempBoardState[row][col] = player; let capturedStonesCount = 0; const opponent = player === BLACK ? WHITE : BLACK; const neighbors = getNeighbors(row, col); for (const { r, c } of neighbors) { if (tempBoardState[r][c] === opponent) { const group = findGroupSimulated(r, c, tempBoardState); if (countLibertiesSimulated(group, tempBoardState) === 0) { capturedStonesCount += group.stones.length; group.stones.forEach(s => tempBoardState[s.r][s.c] = EMPTY); } } } const ownGroup = findGroupSimulated(row, col, tempBoardState); if (countLibertiesSimulated(ownGroup, tempBoardState) === 0 && capturedStonesCount === 0) { return false; } const potentialStateString = JSON.stringify(tempBoardState); if (moveHistory.length > 1 && potentialStateString === moveHistory[moveHistory.length - 2]) { return false; } return true; }
         function findGroupSimulated(startR, startC, simBoardState) { const color = simBoardState[startR][startC]; if (color === EMPTY) return { stones: [] }; const group = new Set(); const queue = [{ r: startR, c: startC }]; const visited = new Set([`${startR},${startC}`]); const size = simBoardState.length; while (queue.length > 0) { const { r, c } = queue.shift(); group.add(`${r},${c}`); const simNeighbors = getNeighbors(r, c); for (const { r: nr, c: nc } of simNeighbors) { const posString = `${nr},${nc}`; if (nr >= 0 && nr < size && nc >= 0 && nc < size) { const neighborState = simBoardState[nr][nc]; if (neighborState === color && !visited.has(posString)) { visited.add(posString); queue.push({ r: nr, c: nc }); } } } } const stoneCoords = Array.from(group).map(s => { const [r, c] = s.split(',').map(Number); return { r, c }; }); return { stones: stoneCoords }; }
         function countLibertiesSimulated(group, simBoardState) { const liberties = new Set(); const size = simBoardState.length; if (!group || !group.stones) return 0; for (const stone of group.stones) { const simNeighbors = getNeighbors(stone.r, stone.c); for (const { r: nr, c: nc } of simNeighbors) { if (nr >= 0 && nr < size && nc >= 0 && nc < size) { if (simBoardState[nr][nc] === EMPTY) { liberties.add(`${nr},${nc}`); } } } } return liberties.size; }
@@ -529,7 +890,65 @@
         // --- Modals ---
         function openModal(modalId) { const modal = document.getElementById(modalId); if(modal) modal.style.display = 'flex'; }
         function closeModal(modalId) { const modal = document.getElementById(modalId); if(modal) modal.style.display = 'none'; }
-        function setupModalInteractions() { window.addEventListener('click', (event) => { document.querySelectorAll('.modal').forEach(modal => { if (event.target == modal) closeModal(modal.id); }); }); TUTORIAL_BTN.onclick = () => { openModal('tutorial-modal'); closeOptionsMenu(); }; ABOUT_BTN.onclick = () => { openModal('about-modal'); closeOptionsMenu(); }; SETTINGS_BTN.onclick = () => { openModal('settings-modal'); closeOptionsMenu(); }; LOAD_GAME_BTN.onclick = () => { showSaveLoadModal(false); closeOptionsMenu(); }; JOIN_GAME_BTN.onclick = () => { openModal('join-game-modal'); closeOptionsMenu(); }; SAVE_GAME_BTN.onclick = () => { showSaveLoadModal(true); closeOptionsMenu(); }; HOST_GAME_BTN.onclick = () => { showHostGameModal(); closeOptionsMenu(); }; document.getElementById('confirm-join-button').onclick = attemptJoinGame; }
+        function setupModalInteractions() {
+            window.addEventListener('click', (event) => { document.querySelectorAll('.modal').forEach(modal => { if (event.target == modal) closeModal(modal.id); }); });
+            TUTORIAL_BTN.onclick = () => { openModal('tutorial-modal'); closeOptionsMenu(); };
+            ABOUT_BTN.onclick = () => { openModal('about-modal'); closeOptionsMenu(); };
+            SETTINGS_BTN.onclick = () => {
+                // Populate modal with current settings before opening
+                KOMI_INPUT.value = komi;
+                AI_DIFFICULTY_SELECT.value = aiDifficulty;
+                openModal('settings-modal');
+                closeOptionsMenu();
+            };
+            LOAD_GAME_BTN.onclick = () => { showSaveLoadModal(false); closeOptionsMenu(); };
+            JOIN_GAME_BTN.onclick = () => { openModal('join-game-modal'); closeOptionsMenu(); };
+            SAVE_GAME_BTN.onclick = () => { showSaveLoadModal(true); closeOptionsMenu(); };
+            HOST_GAME_BTN.onclick = () => { showHostGameModal(); closeOptionsMenu(); };
+            SAVE_SETTINGS_BTN.onclick = saveSettings;
+            document.getElementById('confirm-join-button').onclick = attemptJoinGame;
+        }
+
+        // --- Settings Management ---
+        function loadSettings() {
+            const savedKomi = localStorage.getItem('goGameKomi');
+            const savedAiDifficulty = localStorage.getItem('goGameAiDifficulty');
+
+            if (savedKomi !== null) {
+                komi = parseFloat(savedKomi);
+            }
+            if (savedAiDifficulty !== null) {
+                aiDifficulty = savedAiDifficulty;
+            }
+            // Update input fields in the modal as well, though they are also updated on open
+            KOMI_INPUT.value = komi;
+            AI_DIFFICULTY_SELECT.value = aiDifficulty;
+        }
+
+        function saveSettings() {
+            const newKomi = parseFloat(KOMI_INPUT.value);
+            const newAiDifficulty = AI_DIFFICULTY_SELECT.value;
+
+            if (isNaN(newKomi)) {
+                setMessage("Invalid Komi value. Please enter a number.");
+                return;
+            }
+
+            komi = newKomi;
+            aiDifficulty = newAiDifficulty;
+
+            try {
+                localStorage.setItem('goGameKomi', komi.toString());
+                localStorage.setItem('goGameAiDifficulty', aiDifficulty);
+                setMessage("Settings saved.");
+            } catch (e) {
+                console.error("Error saving settings to localStorage:", e);
+                setMessage("Could not save settings. Storage might be full or restricted.");
+            }
+            
+            closeModal('settings-modal');
+        }
+
 
         // --- Save / Load ---
         const SAVE_SLOT_PREFIX = 'goGameSave_';
@@ -540,8 +959,31 @@
         // --- PvP Invite/Join ---
         const wordList = ["fox", "jump", "quick", "brown", "lazy", "dog", "over", "log", "river", "flow", "stone", "path", "wind", "sun", "moon", "star", "cloud", "rain", "snow", "tree", "leaf", "root", "bird", "song", "fly", "high", "deep", "blue", "red", "gold", "wise", "calm", "fast", "slow", "dark", "light", "new", "old", "true", "kind"];
         function generateInviteKey() { const words = []; const len = wordList.length; if (window.crypto?.getRandomValues) { const idx = new Uint32Array(3); window.crypto.getRandomValues(idx); for (let i = 0; i < 3; i++) words.push(wordList[idx[i] % len]); } else { console.warn("Using fallback Math.random for key generation."); for (let i = 0; i < 3; i++) words.push(wordList[Math.floor(Math.random() * len)]); } return words.join('-'); }
-        function showHostGameModal() { if (gameMode !== 'pvp' || gameOver) { setMessage("Can only host active PvP games."); return; } const key = generateInviteKey(); document.getElementById('invite-key').textContent = key; openModal('host-game-modal'); console.log(`[JAMI STUB] Listening on key: ${key}`); }
-        function attemptJoinGame() { const key = document.getElementById('join-key-input').value.trim().toLowerCase(); if (!key || !/^[a-z]+(-[a-z]+){2}$/.test(key)) { setMessage("Invalid key format. Use three words separated by hyphens."); return; } closeModal('join-game-modal'); setMessage(`Attempting to join game with key: ${key}...`); console.log(`[JAMI STUB] Joining key: ${key}`); startGame('pvp', parseInt(BOARD_SIZE_SELECT.value)); }
+        
+        function showHostGameModal() {
+            // [JAMI STUB] This function initiates a STUBBED P2P hosting process. No actual network communication occurs.
+            if (gameMode !== 'pvp' || gameOver) { setMessage("Can only host active PvP games."); return; }
+            const key = generateInviteKey();
+            document.getElementById('invite-key').textContent = key;
+            openModal('host-game-modal');
+            // The console.log below simulates listening for a Jami connection, which is not actually happening.
+            console.log(`[JAMI STUB] "Listening" on key (placeholder): ${key}. This is a simulation; no real network activity is initiated by this web page.`);
+        }
+
+        function attemptJoinGame() {
+            // [JAMI STUB] This function initiates a STUBBED P2P joining process. No actual network communication occurs.
+            const key = document.getElementById('join-key-input').value.trim().toLowerCase();
+            if (!key || !/^[a-z]+(-[a-z]+){2}$/.test(key)) {
+                setMessage("Invalid key format. Use three words separated by hyphens.");
+                return;
+            }
+            closeModal('join-game-modal');
+            setMessage(`Attempting to "join" game with key (placeholder): ${key}... This will start a local PvP game.`);
+            // The console.log below simulates attempting a Jami connection, which is not actually happening.
+            console.log(`[JAMI STUB] "Joining" key (placeholder): ${key}. This is a simulation; no real network activity is initiated by this web page.`);
+            // This starts a local PvP game, not a true networked one.
+            startGame('pvp', parseInt(BOARD_SIZE_SELECT.value));
+        }
 
         // --- Hints ---
         function clearHint() {
@@ -636,6 +1078,7 @@
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
+            loadSettings(); // Load settings on startup
             setupModalInteractions();
             setupEventListeners();
             drawEmptyBoard(parseInt(BOARD_SIZE_SELECT.value));
