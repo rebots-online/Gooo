@@ -265,19 +265,25 @@
 
         .stone {
             position: absolute;
-            width: 90%;  /* Relative to intersection size */
-            height: 90%;
+            /* width: 90%; height: 90%; left: 5%; top: 5%; */ /* These are not used when stone is child of GO_BOARD and styled by JS */
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            z-index: 2;
+            z-index: 2; /* Set by JS, but good to have a base */
             pointer-events: none;
-            left: 5%;  /* Center in intersection */
-            top: 5%;
         }
         .black-stone { background-color: #2d3748; border: 1px solid #1a202c; }
         .white-stone { background-color: #f7fafc; border: 1px solid #a0aec0; }
 
-        .star-point { position: absolute; background-color: #4a5568; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; }
+        .star-point {
+            position: absolute;
+            background-color: #4a5568; /* Same color as lines */
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0; /* Below lines */
+            width: 6px; /* Added dimension */
+            height: 6px; /* Added dimension */
+        }
 
         .game-button { background-color: #4a5568; color: #e2e8f0; border: 1px solid #718096; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s ease-in-out, transform 0.1s ease; text-align: center; cursor: pointer; display: block; width: 100%; margin-bottom: 0.5rem; }
         .game-button:hover { background-color: #718096; }
@@ -331,7 +337,14 @@
         .text-input:focus { outline: none; border-color: #a0aec0; box-shadow: 0 0 0 2px rgba(160, 174, 192, 0.5); }
 
         .tutorial-card { background-color: #4a5568; border: 1px solid #718096; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
-        .coord-label { position: absolute; font-size: 0.65rem; color: rgba(45, 55, 72, 0.7); pointer-events: none; line-height: 1; z-index: 1; }
+        .coord-label {
+            position: absolute;
+            font-size: 0.65rem;
+            color: rgba(45, 55, 72, 0.7);
+            pointer-events: none;
+            line-height: 1;
+            z-index: 3; /* Raised to be above lines (1) and stones (2) */
+        }
 
         /* Accordion toggle for in-game controls (content within the tray) */
          .ingame-controls-header {
@@ -780,29 +793,32 @@
                 intersectionsLayer.innerHTML = '';
 
                 // Debug board dimensions
-                const boardWidth = GO_BOARD.clientWidth;
-                const boardHeight = GO_BOARD.clientHeight;
-                console.log('Board dimensions:', {
-                    width: boardWidth,
+                // const boardWidth = GO_BOARD.clientWidth; // Old: use GO_BOARD width
+                const drawingAreaWidth = linesContainer.clientWidth; // New: use width of the actual drawing container
+                const boardHeight = linesContainer.clientHeight; // Use height of drawing container for consistency
+
+                console.log('Board dimensions (drawing area):', {
+                    width: drawingAreaWidth,
                     height: boardHeight,
-                    clientRect: GO_BOARD.getBoundingClientRect(),
-                    linesRect: linesContainer.getBoundingClientRect(),
-                    intersectionsRect: intersectionsLayer.getBoundingClientRect()
+                    clientRect: linesContainer.getBoundingClientRect(),
+                    goBoardClientRect: GO_BOARD.getBoundingClientRect()
                 });
-                if (boardWidth === 0) {
-                    console.warn("drawBoard: boardWidth is 0, retrying...");
+
+                if (drawingAreaWidth === 0) {
+                    console.warn("drawBoard: drawingAreaWidth is 0, retrying...");
                     setTimeout(drawBoard, 50);
                     return;
                 }
 
-                // Calculate cell size based on board dimensions, accounting for padding
-                const boardPadding = Math.floor(boardWidth * 0.02); // 2% padding from CSS
-                const effectiveBoardWidth = boardWidth - (2 * boardPadding);
+                // Calculate cell size based on drawing area dimensions
+                const boardPadding = 0; // New: CSS inset handles the main padding. This is for any additional internal padding.
+                const effectiveBoardWidth = drawingAreaWidth - (2 * boardPadding); // boardPadding is currently 0
                 const cellSize = (boardSize > 1) ? effectiveBoardWidth / (boardSize - 1) : effectiveBoardWidth;
+                console.log('drawBoard: Calculated cellSize:', cellSize); // Added log
 
                 console.log('Board measurements:', {
-                    boardWidth,
-                    boardPadding,
+                    drawingAreaWidth,
+                    boardPadding, // This is the JS internal padding, now 0
                     effectiveBoardWidth,
                     cellSize
                 });
@@ -847,6 +863,7 @@
 
                 // Create intersections grid
                 console.log('\n=== Creating Intersections ===');
+                let loggedStone = false; // For logging stone details only once per drawBoard call
                 for (let r = 0; r < boardSize; r++) {
                     for (let c = 0; c < boardSize; c++) {
                         const intersection = document.createElement('div');
@@ -854,9 +871,15 @@
                         intersection.dataset.row = r;
                         intersection.dataset.col = c;
 
-                        // Calculate position including padding
+                        // Calculate position relative to intersectionsLayer (which is already inset by 20px CSS)
+                        // boardPadding is the JS internal padding, currently 0
                         const top = boardPadding + (r * cellSize);
                         const left = boardPadding + (c * cellSize);
+
+                        // Log for specific intersections' calculated styles
+                        if ((r === 0 && c === 0) || (boardSize === 9 && r === 4 && c === 4) || (boardSize === 19 && r === 9 && c === 9) || (boardSize === 13 && r === 6 && c === 6) ) {
+                            console.log(`drawBoard: Intersection (${r},${c}) calculated style top/left:`, `${top}px`, `${left}px`);
+                        }
                         
                         // Add debug label
                         intersection.textContent = `${r},${c}`;
@@ -866,34 +889,26 @@
                             position: 'absolute',
                             top: `${top}px`,
                             left: `${left}px`,
-                            width: '30px',
+                            width: '30px', // Fixed size for interaction, might need to be cellSize dependent
                             height: '30px',
-                            transform: 'translate(-50%, -50%)',
+                            transform: 'translate(-50%, -50%)', // Center the intersection div
                             zIndex: '20',
                             cursor: 'pointer',
-                            backgroundColor: 'rgba(255, 0, 0, 0.3)',
-                            border: '2px solid rgba(255, 0, 0, 0.5)',
+                            backgroundColor: 'rgba(255, 0, 0, 0.3)', // Debug color
+                            border: '2px solid rgba(255, 0, 0, 0.5)', // Debug border
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '8px',
+                            fontSize: '8px', // For the r,c text
                             color: 'black',
                             pointerEvents: 'auto'
                         });
                         
-                        // Add direct click handler for debugging
+                        // Direct click handler for debugging and actual play
                         intersection.onclick = (e) => {
-                            e.stopPropagation();
-                            console.log('\n=== Intersection Click ===');
-                            console.log(`Position: (${r}, ${c})`);
-                            const rect = intersection.getBoundingClientRect();
-                            console.log('Bounds:', {
-                                top: Math.round(rect.top),
-                                left: Math.round(rect.left),
-                                width: Math.round(rect.width),
-                                height: Math.round(rect.height)
-                            });
+                            e.stopPropagation(); // Prevent board-level click if intersection is hit
+                            console.log(`Intersection Clicked: Row ${r}, Col ${c}. Style Top: ${intersection.style.top}, Left: ${intersection.style.left}`);
                             handleIntersectionClick(r, c);
                         };
                         
@@ -901,81 +916,54 @@
                         intersection.onmouseover = (e) => {
                             const rect = intersection.getBoundingClientRect();
                             debugInfo.textContent = `Mouse over (${r},${c}) at ${Math.round(e.clientX - rect.left)}, ${Math.round(e.clientY - rect.top)}`;
-                            intersection.style.backgroundColor = 'rgba(255, 255, 0, 0.5)';
-                            console.log('Hover:', {
-                                pos: `${r},${c}`,
-                                rect: rect,
-                                mouse: { x: e.clientX, y: e.clientY }
-                            });
+                            intersection.style.backgroundColor = 'rgba(255, 255, 0, 0.5)'; // Hover highlight
                         };
                         
                         intersection.onmouseout = () => {
                             debugInfo.textContent = '';
-                            intersection.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                            intersection.style.backgroundColor = 'rgba(255, 0, 0, 0.3)'; // Reset to debug color
                         };
-
-                        // Log final position and append
-                        const finalRect = intersection.getBoundingClientRect();
-                        console.log(`Intersection (${r},${c}) final:`, {
-                            top: Math.round(finalRect.top),
-                            left: Math.round(finalRect.left),
-                            width: Math.round(finalRect.width),
-                            height: Math.round(finalRect.height)
-                        });
-
-                        intersectionsLayer.appendChild(intersection);
-                            left: Math.round(left),
-                            rect: intersection.getBoundingClientRect()
-                        });
-
-                        intersectionsLayer.appendChild(intersection);
-                        });
-
-                        intersectionsLayer.appendChild(intersection);
-                            event.stopPropagation();
-                            console.log('\n=== Intersection Click ===');
-                            console.log(`Clicked: row ${r}, col ${c}`);
-                            console.log('Event details:', {
-                                type: event.type,
-                                target: event.target,
-                                currentTarget: event.currentTarget,
-                                clientX: event.clientX,
-                                clientY: event.clientY
-                            });
-                            console.log('Element details:', {
-                                rect: intersection.getBoundingClientRect(),
-                                style: intersection.style.cssText,
-                                className: intersection.className,
-                                parentNode: intersection.parentNode.className
-                            });
-                            handleIntersectionClick(r, c);
-                        };
-
-                        // Add to intersections layer
-                        intersectionsLayer.appendChild(intersection);
                         
-                        // Debug intersection after append
-                        console.log(`Intersection ${r},${c} rect:`, intersection.getBoundingClientRect());
-                        intersection.onclick = () => {
-                            console.log('Intersection click event fired');
-                            console.log(`Click coordinates: row ${r}, col ${c}`);
-                            console.log('Current game state:', {
-                                gameStarted,
-                                gameOver,
-                                currentPlayer,
-                                gameMode
-                            });
-                            handleIntersectionClick(r, c);
-                        };
-                        if (showCoordinates) { addCoordLabels(intersection, r, c); }
-                        GO_BOARD.appendChild(intersection);
+                        intersectionsLayer.appendChild(intersection);
+                        if (showCoordinates) { addCoordLabels(intersection, r, c); } // This was outside the loop, should be inside
 
+                        // Stone Rendering: Stones are children of GO_BOARD
                         if (boardState[r][c] !== EMPTY) {
-                            const stone = document.createElement('div'); stone.className = `stone ${boardState[r][c] === BLACK ? 'black-stone' : 'white-stone'}`; const stoneSize = cellPixelSize * 0.85; const stoneTop = boardPadding + r * cellPixelSize - stoneSize / 2; const stoneLeft = boardPadding + c * cellPixelSize - stoneSize / 2;
-                            if (stoneSize > 0 && !isNaN(stoneTop) && !isNaN(stoneLeft)) { stone.style.cssText = `top: ${stoneTop}px; left: ${stoneLeft}px; width: ${stoneSize}px; height: ${stoneSize}px;`; GO_BOARD.appendChild(stone); }
+                            const stone = document.createElement('div');
+                            stone.className = `stone ${boardState[r][c] === BLACK ? 'black-stone' : 'white-stone'}`;
+                            const stoneSize = cellSize * 0.85; // Stone size based on cellSize
+
+                            // Calculate stone position relative to GO_BOARD
+                            // Need to account for the 20px CSS inset of the intersectionsLayer
+                            const cssInset = 20; // The fixed inset value from CSS for layers
+                                                     // boardPadding is the JS internal padding, currently 0
+                            const stoneTop = cssInset + boardPadding + (r * cellSize) - (stoneSize / 2);
+                            const stoneLeft = cssInset + boardPadding + (c * cellSize) - (stoneSize / 2);
+
+                            if (stoneSize > 0 && !isNaN(stoneTop) && !isNaN(stoneLeft)) {
+                                stone.style.cssText = `
+                                    position: absolute;
+                                    top: ${stoneTop}px;
+                                    left: ${stoneLeft}px;
+                                    width: ${stoneSize}px;
+                                    height: ${stoneSize}px;
+                                    border-radius: 50%; /* Ensure stone is round */
+                                    z-index: 2; /* Ensure stones are above lines but below intersection hover effects if any */
+                                `;
+                                // GO_BOARD.appendChild(stone); // Original append
+                                // For logging, we need style applied, so set it first.
+                                stone.style.cssText = styleText; // Apply style
+                                GO_BOARD.appendChild(stone); // Then append
+
+                                if (!loggedStone) {
+                                    console.log(`drawBoard: Stone at (${r},${c}) style top/left/width/height:`, stone.style.top, stone.style.left, stone.style.width, stone.style.height);
+                                    loggedStone = true;
+                                }
+                            }
                         }
                     }
                 }
+                // Ensure existing hint visual is repositioned correctly if board redraws
                 if (currentHintVisual && currentHintVisual.dataset.hintRow !== undefined) {
                      const r_hint = parseInt(currentHintVisual.dataset.hintRow);
                      const c_hint = parseInt(currentHintVisual.dataset.hintCol);
@@ -997,9 +985,10 @@
         function getStarPoints(size) { if (size === 9) return [{row: 2, col: 2}, {row: 2, col: 6}, {row: 4, col: 4}, {row: 6, col: 2}, {row: 6, col: 6}]; if (size === 13) return [{row: 3, col: 3}, {row: 3, col: 9}, {row: 6, col: 6}, {row: 9, col: 3}, {row: 9, col: 9}]; if (size === 19) return [ {row: 3, col: 3}, {row: 3, col: 9}, {row: 3, col: 15}, {row: 9, col: 3}, {row: 9, col: 9}, {row: 9, col: 15}, {row: 15, col: 3}, {row: 15, col: 9}, {row: 15, col: 15} ]; return []; }
 
         function handleIntersectionClick(row, col) {
-            console.log('=== Handle Intersection Click ===');
-            console.log(`Position: row ${row}, col ${col}`);
-            console.log('Game state:', {
+            console.log('handleIntersectionClick: Clicked on intersection (row, col):', row, col);
+            // console.log('=== Handle Intersection Click ==='); // Keeping this for now, can be removed if too verbose
+            // console.log(`Position: row ${row}, col ${col}`);
+            console.log('Game state (at click):', { // Slightly changed original log
                 gameStarted,
                 gameOver,
                 gameMode,
@@ -1027,15 +1016,54 @@
         function placeStone(row, col, player, receivedMove = false) {
             clearMessage();
             clearHint();
-            if (boardState[row][col] !== EMPTY) { setMessage("Intersection occupied."); return false; }
+            let messageForLog = ""; // For logging reason of invalid move
+
+            if (boardState[row][col] !== EMPTY) {
+                messageForLog = "Intersection occupied.";
+                setMessage(messageForLog);
+                console.log('placeStone: Move INVALID at (row, col):', row, col, 'Reason:', messageForLog);
+                return false;
+            }
             const tempBoardState = JSON.parse(JSON.stringify(boardState)); tempBoardState[row][col] = player; let capturedStonesInSim = 0; const opponent = player === BLACK ? WHITE : BLACK; let groupsToRemove = [];
             const neighbors = getNeighbors(row, col);
-            for (const { r, c } of neighbors) { if (tempBoardState[r][c] === opponent) { const group = findGroupSimulated(r, c, tempBoardState); if (countLibertiesSimulated(group, tempBoardState) === 0) { groupsToRemove.push(group); capturedStonesInSim += group.stones.length; } } }
-            groupsToRemove.forEach(group => group.stones.forEach(({ r, c }) => tempBoardState[r][c] = EMPTY));
-            const ownGroup = findGroupSimulated(row, col, tempBoardState); if (countLibertiesSimulated(ownGroup, tempBoardState) === 0 && capturedStonesInSim === 0) { setMessage("Illegal move: Suicide."); return false; }
-            const potentialStateString = JSON.stringify(tempBoardState); if (moveHistory.length > 1 && potentialStateString === moveHistory[moveHistory.length - 2]) { setMessage("Illegal move: Ko violation."); return false; }
-            boardState[row][col] = player; let actualCapturedStones = 0; groupsToRemove.forEach(group => group.stones.forEach(({ r, c }) => { if (boardState[r][c] !== EMPTY) { boardState[r][c] = EMPTY; actualCapturedStones++; } }));
+            // Renamed inner r,c to neighbor_r, neighbor_c to avoid confusion if debugging scopes
+            for (const { r: neighbor_r, c: neighbor_c } of neighbors) {
+                if (tempBoardState[neighbor_r][neighbor_c] === opponent) {
+                    const group = findGroupSimulated(neighbor_r, neighbor_c, tempBoardState);
+                    if (countLibertiesSimulated(group, tempBoardState) === 0) {
+                        groupsToRemove.push(group);
+                        capturedStonesInSim += group.stones.length;
+                    }
+                }
+            }
+            // Renamed inner r,c to stone_r, stone_c
+            groupsToRemove.forEach(group => group.stones.forEach(({ r: stone_r, c: stone_c }) => tempBoardState[stone_r][stone_c] = EMPTY));
+            const ownGroup = findGroupSimulated(row, col, tempBoardState);
+            if (countLibertiesSimulated(ownGroup, tempBoardState) === 0 && capturedStonesInSim === 0) {
+                messageForLog = "Illegal move: Suicide.";
+                setMessage(messageForLog);
+                console.log('placeStone: Move INVALID at (row, col):', row, col, 'Reason:', messageForLog);
+                return false;
+            }
+            const potentialStateString = JSON.stringify(tempBoardState);
+            if (moveHistory.length > 1 && potentialStateString === moveHistory[moveHistory.length - 2]) {
+                messageForLog = "Illegal move: Ko violation.";
+                setMessage(messageForLog);
+                console.log('placeStone: Move INVALID at (row, col):', row, col, 'Reason:', messageForLog);
+                return false;
+            }
+            boardState[row][col] = player; let actualCapturedStones = 0;
+            // Renamed inner r,c to stone_r, stone_c
+            groupsToRemove.forEach(group => group.stones.forEach(({ r: stone_r, c: stone_c }) => {
+                if (boardState[stone_r][stone_c] !== EMPTY) {
+                    boardState[stone_r][stone_c] = EMPTY;
+                    actualCapturedStones++;
+                }
+            }));
             captures[player] += actualCapturedStones; passCounter = 0; moveHistory.push(JSON.stringify(boardState));
+
+            console.log('placeStone: Successfully placed stone for player', player, 'at (row, col):', row, col); // Added log
+
             drawBoard(); updateCaptureInfo(); currentPlayer = opponent; updateTurnIndicator();
             if (gameMode === 'pvp' && !receivedMove) { jamiSend(document.getElementById('invite-key')?.textContent || 'default-key', { type: 'move', player, row, col, boardState }); } return true;
         }
@@ -1490,22 +1518,30 @@
                 setMessage(`Hint: Consider placing a stone at ${hintCoordinate} ${explanation}`);
             }
 
-            const boardWidth = GO_BOARD.clientWidth;
-            if (boardWidth === 0) { console.warn("Cannot create hint, board width is 0."); return; }
+            // Consistent sizing logic with drawBoard
+            const linesContainer = GO_BOARD.querySelector('.board-lines');
+            if (!linesContainer) {
+                console.error("Hint Error: linesContainer not found for measurements.");
+                return;
+            }
+            const drawingAreaWidth = linesContainer.clientWidth;
+            if (drawingAreaWidth === 0) { console.warn("Cannot create hint, drawingAreaWidth is 0."); return; }
 
-            const gapPercentage = 2;
-            const boardPadding = boardWidth * (gapPercentage / 100);
-            const effectiveBoardWidth = boardWidth - 2 * boardPadding;
-            const cellPixelSize = (boardSize > 1) ? effectiveBoardWidth / (boardSize - 1) : effectiveBoardWidth;
+            const jsInternalPadding = 0; // Consistent with drawBoard's current internal padding
+            const effectiveBoardWidth_hint = drawingAreaWidth - (2 * jsInternalPadding);
+            const cellSize_hint = (boardSize > 1) ? effectiveBoardWidth_hint / (boardSize - 1) : effectiveBoardWidth_hint;
 
             const hintVisual = document.createElement('div');
             hintVisual.className = 'hint-visual'; 
             hintVisual.dataset.hintRow = r; 
             hintVisual.dataset.hintCol = c;
 
-            const hintSize = cellPixelSize * 0.9;
-            const hintTop = boardPadding + r * cellPixelSize - hintSize / 2;
-            const hintLeft = boardPadding + c * cellPixelSize - hintSize / 2;
+            const hintSize = cellSize_hint * 0.9;
+            const cssInset = 20; // The CSS inset used by linesContainer and intersectionsLayer
+
+            // Hint is appended to GO_BOARD, so position needs to account for cssInset and any jsInternalPadding
+            const hintTop = cssInset + jsInternalPadding + (r * cellSize_hint) - (hintSize / 2);
+            const hintLeft = cssInset + jsInternalPadding + (c * cellSize_hint) - (hintSize / 2);
 
             if (hintSize > 0 && !isNaN(hintTop) && !isNaN(hintLeft)) {
                 hintVisual.style.width = `${hintSize}px`;
